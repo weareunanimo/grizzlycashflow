@@ -1,0 +1,35 @@
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Dependências
+/vendor/
+/node_modules/
+
+# Storage (fora do webroot, nunca versionado)
+/storage/uploads/
+/storage/logs/
+/storage/cache/
+/storage/backups/
+/storage/tmp/
+
+# Dumps e segredos
+*.sql
+*.dump
+*.sql.gz
+*.enc
+*.pem
+*.key
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Ferramentas
+.phpunit.result.cache
+.phpstan.cache/
+/coverage/

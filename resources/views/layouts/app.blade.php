@@ -4,13 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Grizzly Cashflow')</title>
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-[var(--bg)] text-[var(--text)] font-sans">
     <header class="border-b border-[var(--border)]">
         <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2 shrink-0">
-                <span class="text-xl">🐻</span>
+                <img src="{{ asset('images/logo-header.png') }}" alt="" class="w-8 h-8">
                 <span class="font-semibold tracking-tight">Grizzly Cashflow</span>
             </a>
             <nav class="flex items-center gap-6 text-sm text-[var(--text-dim)]">

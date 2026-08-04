@@ -4,12 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Entrar — {{ config('app.name', 'Grizzly Cashflow') }}</title>
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--text)] font-sans px-4">
     <div class="w-full max-w-sm">
         <div class="flex items-center justify-center gap-2 mb-8">
-            <span class="text-2xl">🐻</span>
+            <img src="{{ asset('images/logo-header.png') }}" alt="" class="w-10 h-10">
             <span class="text-lg font-semibold tracking-tight">Grizzly Cashflow</span>
         </div>
 

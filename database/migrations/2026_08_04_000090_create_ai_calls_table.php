@@ -33,7 +33,7 @@ return new class extends Migration
             $table->boolean('ok');
             $table->string('error', 500)->nullable();
             $table->json('response')->nullable(); // resposta estruturada (para o cache)
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index(['user_id', 'purpose', 'input_hash'], 'ix_ai_cache');
             $table->index(['user_id', 'created_at'], 'ix_ai_cost');

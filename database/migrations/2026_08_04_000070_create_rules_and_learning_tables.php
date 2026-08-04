@@ -35,7 +35,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('rule_id')->constrained();
             $table->foreignId('transaction_id')->constrained();
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index(['user_id', 'rule_id', 'created_at'], 'ix_hits');
         });
@@ -52,7 +52,7 @@ return new class extends Migration
             $table->decimal('confidence', 4, 3);
             $table->string('status', 20); // pending|accepted|dismissed|expired
             $table->foreignId('rule_id')->nullable()->constrained('rules');
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
             $table->timestamp('decided_at')->nullable();
 
             $table->unique(['user_id', 'signature'], 'uq_rulesug');
@@ -70,7 +70,7 @@ return new class extends Migration
             $table->decimal('predicted_confidence', 4, 3)->nullable();
             $table->string('merchant_key', 160)->nullable();
             $table->json('tokens')->nullable();
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index(['user_id', 'merchant_key', 'created_at'], 'ix_feedback');
         });
@@ -81,7 +81,7 @@ return new class extends Migration
             $table->string('token', 60);
             $table->foreignId('category_id')->constrained();
             $table->integer('weight')->default(1); // correção manual pesa mais
-            $table->timestamp('updated_at');
+            $table->timestamp('updated_at')->useCurrent();
 
             $table->primary(['user_id', 'token', 'category_id']);
             $table->index(['user_id', 'token'], 'ix_ct_token');
@@ -93,7 +93,7 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained();
             $table->integer('hits')->unsigned()->default(0);
             $table->integer('manual_hits')->unsigned()->default(0);
-            $table->timestamp('last_at');
+            $table->timestamp('last_at')->useCurrent();
 
             $table->primary(['user_id', 'merchant_id', 'category_id']);
         });

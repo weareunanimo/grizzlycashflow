@@ -79,7 +79,7 @@ return new class extends Migration
             $table->bigInteger('to_cents');
             $table->decimal('delta_pct', 7, 2);
             $table->foreignId('transaction_id')->nullable()->constrained();
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index(['user_id', 'recurrence_id', 'changed_on'], 'ix_rpc');
         });
@@ -95,7 +95,7 @@ return new class extends Migration
             $table->decimal('confidence', 4, 3);
             $table->string('status', 20); // pending|accepted|dismissed|expired
             $table->foreignId('recurrence_id')->nullable()->constrained('recurrences');
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
             $table->timestamp('decided_at')->nullable();
 
             $table->unique(['user_id', 'signature'], 'uq_recsug');

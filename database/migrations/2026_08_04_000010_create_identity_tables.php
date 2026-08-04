@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('email', 190);
             $table->binary('ip')->nullable();
             $table->boolean('successful');
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index(['email', 'created_at'], 'ix_attempts_email_time');
             // Sem índice em `ip`: é BLOB (sem tamanho fixo) e MySQL exige um
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->string('source', 20)->nullable(); // manual|pdf|csv|ocr|text|audio|whatsapp
             $table->char('request_id', 26)->nullable();
             $table->binary('ip')->nullable();
-            $table->timestamp('created_at', 3);
+            $table->timestamp('created_at', 3)->useCurrent();
 
             $table->index(['user_id', 'entity_type', 'entity_id', 'id'], 'ix_audit_entity');
             $table->index(['user_id', 'created_at'], 'ix_audit_time');
@@ -66,7 +66,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->string('skey', 80);
             $table->json('svalue');
-            $table->timestamp('updated_at');
+            $table->timestamp('updated_at')->useCurrent();
 
             $table->primary(['user_id', 'skey']);
         });

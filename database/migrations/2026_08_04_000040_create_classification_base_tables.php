@@ -57,7 +57,7 @@ return new class extends Migration
             $table->string('alias_key', 190);
             $table->string('origin', 20); // learned|manual|seed
             $table->unsignedInteger('times_seen')->default(1);
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->unique(['user_id', 'alias_key'], 'uq_alias');
         });
@@ -85,7 +85,7 @@ return new class extends Migration
             $table->string('name', 60);
             $table->string('slug', 60);
             $table->char('color', 7)->nullable();
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->unique(['user_id', 'slug'], 'uq_tag');
         });

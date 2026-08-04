@@ -24,7 +24,7 @@ return new class extends Migration
             $table->bigInteger('inflow_cents')->default(0);
             $table->bigInteger('outflow_cents')->default(0);
             $table->bigInteger('closing_cents')->default(0);
-            $table->timestamp('updated_at');
+            $table->timestamp('updated_at')->useCurrent();
 
             $table->primary(['user_id', 'account_id', 'balance_date']);
         });
@@ -45,7 +45,7 @@ return new class extends Migration
             $table->bigInteger('closing_balance_cents')->default(0);
             $table->boolean('is_projection')->default(false);
             $table->string('risk_level', 10)->nullable(); // ok|attention|critical
-            $table->timestamp('computed_at');
+            $table->timestamp('computed_at')->useCurrent();
 
             $table->unique(['user_id', 'granularity', 'bucket_start'], 'uq_cf');
             $table->index(['user_id', 'granularity', 'bucket_start'], 'ix_cf_period');
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->string('scope', 20); // cashflow|balances|category_rollup
             $table->date('from_date');
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->primary(['user_id', 'scope', 'from_date']);
         });
@@ -68,7 +68,7 @@ return new class extends Migration
             $table->string('direction', 3);
             $table->bigInteger('total_cents');
             $table->unsignedInteger('tx_count');
-            $table->timestamp('updated_at');
+            $table->timestamp('updated_at')->useCurrent();
 
             $table->primary(['user_id', 'category_id', 'month', 'direction']);
         });
@@ -88,7 +88,7 @@ return new class extends Migration
             $table->string('generated_by', 10); // rule|llm
             $table->decimal('confidence', 4, 3)->nullable();
             $table->string('status', 20); // new|seen|dismissed|pinned
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->unique(['user_id', 'dedupe_key'], 'uq_insight');
             $table->index(['user_id', 'status', 'created_at'], 'ix_insight_feed');

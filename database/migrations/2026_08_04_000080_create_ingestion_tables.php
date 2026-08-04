@@ -33,7 +33,7 @@ return new class extends Migration
             $table->string('error_code', 60)->nullable();
             $table->string('error_message', 500)->nullable();
             $table->json('meta')->nullable();
-            $table->timestamp('uploaded_at');
+            $table->timestamp('uploaded_at')->useCurrent();
             $table->timestamp('parsed_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -53,7 +53,7 @@ return new class extends Migration
             $table->string('external_id', 190)->nullable();
             $table->json('payload')->nullable(); // snapshot do que essa fonte afirmou
             $table->foreignId('merged_from_transaction_id')->nullable();
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index('transaction_id', 'ix_ev_tx');
             $table->index('document_id', 'ix_ev_doc');
@@ -90,7 +90,7 @@ return new class extends Migration
             $table->string('status', 20); // draft|previewed|committing|committed|failed|rolled_back
             $table->json('stats')->nullable(); // {rows, to_create, to_merge, to_skip, conflicts, sum_cents}
             $table->json('validation')->nullable(); // {items_sum, statement_total, matches, warnings, strategy}
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
             $table->timestamp('previewed_at')->nullable();
             $table->timestamp('committed_at')->nullable();
             $table->timestamp('rolled_back_at')->nullable();
@@ -132,7 +132,7 @@ return new class extends Migration
             $table->json('reasons'); // ["same_amount","date_diff_1d","merchant_similar_0.91"]
             $table->string('decision', 20); // pending|merge|keep_both|replace|skip
             $table->timestamp('decided_at')->nullable();
-            $table->timestamp('created_at');
+            $table->timestamp('created_at')->useCurrent();
 
             $table->index(['user_id', 'decision', 'created_at'], 'ix_dedup_pending');
         });

@@ -39,7 +39,9 @@ return new class extends Migration
             $table->timestamp('created_at');
 
             $table->index(['email', 'created_at'], 'ix_attempts_email_time');
-            $table->index(['ip', 'created_at'], 'ix_attempts_ip_time');
+            // Sem índice em `ip`: é BLOB (sem tamanho fixo) e MySQL exige um
+            // prefixo de tamanho para indexar BLOB/TEXT. Hoje o backoff (Grizzly\Domain\Identity\LoginLockoutPolicy)
+            // só consulta por email, então esse índice não é necessário ainda.
         });
 
         // Append-only: nunca UPDATE/DELETE (invariante I7). Ver docs/11-seguranca.md#5.

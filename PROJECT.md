@@ -104,8 +104,9 @@ Status: 🟢 aprovada · 🟡 proposta (aguarda aprovação) · 🔵 aceita por 
 | [0017](docs/adr/README.md#adr-0017) | WhatsApp como canal de ingestão, não como módulo novo | ⚪ V3 |
 | [0018](docs/adr/0018-fatura-aberta-e-importacao-incremental.md) | Fatura aberta e importação incremental idempotente | 🔵 |
 | [0019](docs/adr/0019-validacao-de-integridade-por-cadeia-de-saldo.md) | Validação por cadeia de saldo + conferência cruzada entre canais | 🔵 |
-| [0020](docs/adr/0020-consolidacao-de-lancamentos-de-ruido.md) | Consolidação mensal de lançamentos de ruído (rendimento automático) | 🟡 **precisa aprovação** |
+| [0020](docs/adr/0020-consolidacao-de-lancamentos-de-ruido.md) | Consolidação mensal de lançamentos de ruído (rendimento automático) em linha expansível | 🔵 (aprovado pelo PO) |
 | [0021](docs/adr/0021-deteccao-de-recorrencia-por-cluster-de-valor.md) | Detecção de recorrência por favorecido **e** cluster de valor | 🔵 |
+| [0022](docs/adr/0022-antecipacao-de-fatura.md) | Antecipação de fatura reconhecida como classe própria, não duplicidade | 🔵 (confirmado pelo PO) |
 
 ---
 
@@ -153,6 +154,7 @@ Estas viram testes automatizados no MVP:
 12. **I12** — Reimportar uma fatura aberta nunca sobrescreve categoria definida pelo usuário (ADR-0018).
 13. **I13** — Importação com `has_running_balance` e cadeia de saldo rompida nunca é commitada (ADR-0019).
 14. **I14** — A soma das transações importadas é igual à soma das linhas do arquivo, mesmo com consolidação (ADR-0020).
+15. **I15** — Um segundo pagamento de fatura no mesmo ciclo nunca entra no scoring de duplicidade comum; é reconhecido como antecipação (ADR-0022).
 
 ---
 
@@ -172,11 +174,8 @@ Estas viram testes automatizados no MVP:
 - [ ] Aprovar ADR-0003 (postura de privacidade / IA)
 - [ ] Aprovar ADR-0004 (modelo de parcelas)
 - [ ] Aprovar ADR-0005 (framework)
-- [ ] Aprovar ADR-0020 (consolidação de rendimento automático)
 - [ ] Confirmar dia de fechamento e vencimento do Visa Black XP (inferido: fecha ~17/18, vence dia 01)
 - [ ] Confirmar limite do cartão (para o cálculo de limite livre)
-- [ ] 🔴 Verificar no app do XP os pagamentos de fatura aparentemente duplicados
-      (R$ 2.710,53 em 29/07 e 03/08; R$ 1.093,66 duas vezes em 01/07) — ver `docs/13-perfis-importadores-xp.md#13`
 - [ ] Liberar acesso de escrita ao repositório para esta sessão (push está retornando 403)
 
 ### ✅ Resolvidas em 2026-08-04
@@ -185,3 +184,5 @@ Estas viram testes automatizados no MVP:
 - [x] Faturas **não** têm senha → `PdfDecryptor` sai do caminho crítico do MVP
 - [x] Amostras reais recebidas: extrato (110 lançamentos) e fatura (110 itens) → perfis de importador
       especificados em `docs/13-perfis-importadores-xp.md`, ADRs 0018–0021 derivados dos dados
+- [x] ADR-0020 aprovado: rendimento automático consolidado em 1 linha por mês, expansível ao clicar
+- [x] Pagamentos duplos de fatura = antecipação, confirmado pelo PO (ADR-0022, não é duplicidade)

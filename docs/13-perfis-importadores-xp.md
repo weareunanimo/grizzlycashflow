@@ -67,10 +67,9 @@ O nome do favorecido pode vir com CPF/CNPJ colado: `Pix enviado para 49 874 851 
 `CounterpartyNormalizer` extrai o documento (guarda apenas máscara + hash, conforme ADR de privacidade)
 e limpa o nome. Sufixos `S.A`, `LTDA`, `ME`, `EIRELI` e `Em Recuperacao Judicial` são removidos da chave.
 
-### 1.3 🔴 Achado que precisa da sua verificação
+### 1.3 ✅ Confirmado pelo PO: pagamentos duplos = antecipação de fatura
 
-Dois pagamentos de fatura aparecem **em duplicidade** no extrato, e a cadeia de saldo confirma que
-**ambos debitaram**:
+Dois pares de pagamentos com o mesmo valor aparecem no extrato:
 
 | Data | Descrição | Valor |
 |------|-----------|-------|
@@ -79,14 +78,15 @@ Dois pagamentos de fatura aparecem **em duplicidade** no extrato, e a cadeia de 
 | 01/07/26 08:51 | `PAGAMENTO DE FATURA` | −R$ 1.093,66 |
 | 01/07/26 08:09 | `Pagamento para BANCO XP S.A` | −R$ 1.093,66 |
 
-Total em jogo: **R$ 3.804,19**. A fatura de setembro credita **apenas um** pagamento de R$ 2.710,53
-(em 29/07). Hipóteses: (a) pagamento manual + débito automático que disparou depois — duplo pagamento
-real, cujo crédito extra apareceria na fatura seguinte; (b) particularidade da exportação do XP.
-Os outros dois pagamentos (`-9.271,21` em 05/07 e `-7.813,76` em 16/06) **não** têm par.
+**Confirmado pelo PO: quando há mais de um pagamento da fatura no período, é antecipação — o
+usuário paga a fatura corrente e adianta parte/todo o valor projetado da fatura seguinte, antes
+mesmo dela fechar.** Não é duplicidade nem erro do banco.
 
-Isso é exatamente o cenário que o motor de conciliação existe para pegar: mesmo valor, ±5 dias,
-mesma conta, descrições diferentes → score ~0,75 → **pergunta ao usuário** em vez de decidir sozinho.
-Vale conferir no app do XP antes de importar.
+**Consequência para o motor de conciliação:** este padrão (2 débitos de valor igual ou distinto,
+mesmo destino `BANCO XP S.A`/`PAGAMENTO DE FATURA`, dentro da janela do mesmo mês de fatura) **não**
+deve ser tratado como par de duplicatas. O `Reconciler` precisa reconhecer explicitamente
+"segundo pagamento de fatura no mesmo ciclo" como **antecipação legítima**, não como candidato a
+merge — ver ADR-0022.
 
 ---
 

@@ -3,6 +3,9 @@
 Este documento detalha os requisitos mais críticos do PO: **nunca duplicar**, **recorrência como
 agrupador** e **aprender com as correções**.
 
+> **Nota (ADR-0022):** pagamento de fatura repetido no mesmo ciclo é **antecipação**, confirmada pelo
+> PO — não passa pelo scoring de similaridade da seção 1. Ver `docs/adr/0022-antecipacao-de-fatura.md`.
+
 ---
 
 ## 1. Conciliação e prevenção de duplicidade (Princípio P1)

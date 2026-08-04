@@ -1,6 +1,6 @@
 # ADR-0020 — Consolidação de lançamentos de ruído (rendimento automático)
 
-- **Status:** 🟡 proposta — **preferência do PO decide**
+- **Status:** 🔵 aceita (aprovada pelo PO em 2026-08-04: "quero ver os rendimentos em uma linha consolidada que expande ao clicar")
 - **Data:** 2026-08-04
 
 ## Contexto
@@ -29,9 +29,10 @@ saldo (ADR-0019) exige que toda linha seja contabilizada.
 | C) Importar tudo com `excluded_from_analytics = 1` | fidelidade + análises limpas | continua poluindo a lista, que é a tela mais usada |
 | D) Descartar | lista limpíssima | quebra a cadeia de saldo e perde receita real — **inaceitável** |
 
-## Decisão proposta
+## Decisão
 
-**Opção A**, generalizada como um recurso de perfil de importador, não um caso especial do XP:
+**Opção A**, aprovada pelo PO, generalizada como um recurso de perfil de importador, não um caso
+especial do XP:
 
 ```jsonc
 // importer_profiles.options
@@ -62,8 +63,6 @@ Candidatos naturais à mesma regra: tarifas de centavos, arredondamentos de cash
 - Invariante nova: **I14 — a soma das transações importadas (consolidadas ou não) é igual à soma das
   linhas originais do arquivo.** Consolidação nunca pode mudar o total.
 - Sem isso, a tela principal degrada com o uso — que é o oposto do objetivo do projeto.
-
-## ⚠️ Precisa da sua decisão
-
-Você quer ver os 21 rendimentos diários de agosto como linhas separadas, ou uma linha
-"Rendimento automático — ago/2026 · R$ 9,84" que expande quando você clicar?
+- UI: a linha consolidada mostra "21 lançamentos · R$ 9,84 · ago/2026" e expande, ao toque/clique,
+  para a lista original com data/hora/valor de cada rendimento — nunca perde granularidade, só a
+  esconde por padrão.

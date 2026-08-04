@@ -121,4 +121,24 @@ final class MoneyTest extends TestCase
         self::assertTrue(Money::fromCents(1)->isPositive());
         self::assertTrue(Money::fromCents(-1)->isNegative());
     }
+
+    public function test_from_brl_string_with_thousands_separator(): void
+    {
+        self::assertSame(197996, Money::fromBrlString('R$ 1.979,96')->cents());
+    }
+
+    public function test_from_brl_string_sign_before_prefix(): void
+    {
+        self::assertSame(-271053, Money::fromBrlString('-R$ 2.710,53')->cents());
+    }
+
+    public function test_from_brl_string_sign_after_prefix(): void
+    {
+        self::assertSame(-7980, Money::fromBrlString('R$ -79,80')->cents());
+    }
+
+    public function test_from_brl_string_small_value(): void
+    {
+        self::assertSame(4, Money::fromBrlString('R$ 0,04')->cents());
+    }
 }

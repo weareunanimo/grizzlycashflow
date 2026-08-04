@@ -53,6 +53,23 @@ final class Money
         return self::fromCents(0, $currency);
     }
 
+    /**
+     * Parseia valores como exportados pelo XP: "R$ 1.979,96", "-R$ 2.710,53", "R$ -79,80"
+     * (o sinal aparece antes ou depois do prefixo "R$ " dependendo do arquivo — ver docs/13).
+     */
+    public static function fromBrlString(string $raw, string $currency = 'BRL'): self
+    {
+        $normalized = str_replace(['R$', ' '], '', trim($raw));
+        $negative = str_starts_with($normalized, '-');
+        $normalized = ltrim($normalized, '-');
+        $normalized = str_replace('.', '', $normalized); // separador de milhar
+        $normalized = str_replace(',', '.', $normalized); // separador decimal
+
+        $value = self::fromDecimalString($normalized, $currency);
+
+        return $negative ? $value->negate() : $value;
+    }
+
     public function cents(): int
     {
         return $this->cents;

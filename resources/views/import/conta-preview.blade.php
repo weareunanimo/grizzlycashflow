@@ -41,12 +41,12 @@
                 <tbody class="divide-y divide-[var(--border)]">
                     @foreach ($rows as $row)
                         <tr class="{{ $row['decision'] === 'duplicata' ? 'opacity-50' : '' }}">
-                            <td class="px-4 py-2 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
-                            <td class="px-4 py-2">{{ $row['description'] }}</td>
-                            <td class="px-4 py-2 text-right font-mono {{ $row['direction'] === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
+                            <td class="px-4 py-2.5 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
+                            <td class="px-4 py-2.5">{{ $row['description'] }}</td>
+                            <td class="px-4 py-2.5 text-right font-mono {{ $row['direction'] === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
                                 {{ $row['amount']->formatBrl() }}
                             </td>
-                            <td class="px-4 py-2">
+                            <td class="px-4 py-2.5">
                                 @if ($row['decision'] === 'novo')
                                     <span class="text-xs text-[var(--in)]">novo</span>
                                 @else

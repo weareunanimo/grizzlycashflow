@@ -36,19 +36,19 @@
                 <tbody class="divide-y divide-[var(--border)]">
                     @foreach ($rows as $row)
                         <tr class="{{ $row['decision'] === 'ignorado' ? 'opacity-40' : '' }}">
-                            <td class="px-4 py-2 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['purchase_date'])->format('d/m/Y') }}</td>
-                            <td class="px-4 py-2">{{ $row['description'] }}</td>
-                            <td class="px-4 py-2 text-right font-mono {{ $row['amount']->isNegative() ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
+                            <td class="px-4 py-2.5 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['purchase_date'])->format('d/m/Y') }}</td>
+                            <td class="px-4 py-2.5">{{ \Grizzly\Domain\Classification\MerchantDisplayName::forRawDescription($row['description']) }}</td>
+                            <td class="px-4 py-2.5 text-right font-mono {{ $row['amount']->isNegative() ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
                                 {{ $row['amount']->formatBrl() }}
                             </td>
-                            <td class="px-4 py-2 text-[var(--text-dim)]">
+                            <td class="px-4 py-2.5 text-[var(--text-dim)]">
                                 @if ($row['installment_number'])
                                     {{ $row['installment_number'] }}/{{ $row['installment_total'] }}
                                 @else
                                     —
                                 @endif
                             </td>
-                            <td class="px-4 py-2 text-xs">
+                            <td class="px-4 py-2.5 text-xs">
                                 @if ($row['decision'] === 'nova_compra')
                                     <span class="text-[var(--in)]">nova compra</span>
                                 @elseif ($row['decision'] === 'confirma_projecao')

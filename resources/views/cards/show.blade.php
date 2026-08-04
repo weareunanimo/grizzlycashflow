@@ -4,12 +4,62 @@
 
 @section('content')
     <h1 class="text-2xl font-semibold mb-1">{{ $card->account_name }}</h1>
-    <p class="text-sm text-[var(--text-dim)] mb-8">
+    <p class="text-sm text-[var(--text-dim)] mb-6">
         {{ ucfirst((string) $card->brand) }} · fecha dia {{ $card->closing_day }}, vence dia {{ $card->due_day }}
     </p>
 
-    <section class="mb-8">
-        <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider mb-3">Projeção de parcelas futuras</h2>
+    <div class="flex gap-1 border-b border-[var(--border)] mb-6 text-sm">
+        @foreach (['compras' => 'Compras', 'projecao' => 'Projeção de faturas', 'parcelamentos' => 'Parcelamentos'] as $key => $label)
+            <a href="{{ route('cards.show', ['id' => $card->id, 'tab' => $key]) }}"
+                class="px-4 py-2.5 -mb-px border-b-2 transition-colors {{ $tab === $key ? 'border-[var(--accent)] text-[var(--text)]' : 'border-transparent text-[var(--text-dim)] hover:text-[var(--text)]' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+
+    @if ($tab === 'compras')
+        <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden mb-4">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
+                            <th class="px-4 py-3">Data</th>
+                            <th class="px-4 py-3">Estabelecimento</th>
+                            <th class="px-4 py-3">Categoria</th>
+                            <th class="px-4 py-3">Parcelas</th>
+                            <th class="px-4 py-3 text-right">Valor/parcela</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[var(--border)]">
+                        @forelse ($purchases as $purchase)
+                            <tr>
+                                <td class="px-4 py-2.5 whitespace-nowrap">
+                                    {{ $purchase->purchase_date ? \Illuminate\Support\Carbon::parse($purchase->purchase_date)->format('d/m/Y') : '—' }}
+                                </td>
+                                <td class="px-4 py-2.5">{{ $purchase->display_name }}</td>
+                                <td class="px-4 py-2.5 text-[var(--text-dim)]">{{ $purchase->category_name ?? '—' }}</td>
+                                <td class="px-4 py-2.5 text-[var(--text-dim)]">
+                                    {{ $purchase->current_number ?? 1 }}/{{ $purchase->installments_total }}x
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-mono {{ $purchase->installment_amount_cents < 0 ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
+                                    R$ {{ number_format($purchase->installment_amount_cents / 100, 2, ',', '.') }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center text-[var(--text-dim)]">
+                                    Nenhuma compra ainda. <a href="{{ route('import.fatura.show') }}" class="text-[var(--accent)] underline">Importar fatura</a>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {{ $purchases->links() }}
+    @endif
+
+    @if ($tab === 'projecao')
         <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden">
             @if ($projection->isEmpty())
                 <p class="px-5 py-6 text-sm text-[var(--text-dim)]">
@@ -27,9 +77,9 @@
                     <tbody class="divide-y divide-[var(--border)]">
                         @foreach ($projection as $month)
                             <tr>
-                                <td class="px-4 py-2">{{ \Illuminate\Support\Carbon::parse($month->reference_month)->translatedFormat('M/Y') }}</td>
-                                <td class="px-4 py-2 text-[var(--text-dim)]">{{ $month->items }}</td>
-                                <td class="px-4 py-2 text-right font-mono text-[var(--out)]">
+                                <td class="px-4 py-2.5">{{ \Illuminate\Support\Carbon::parse($month->reference_month)->format('m/Y') }}</td>
+                                <td class="px-4 py-2.5 text-[var(--text-dim)]">{{ $month->items }}</td>
+                                <td class="px-4 py-2.5 text-right font-mono text-[var(--out)]">
                                     R$ {{ number_format($month->total_cents / 100, 2, ',', '.') }}
                                 </td>
                             </tr>
@@ -38,46 +88,47 @@
                 </table>
             @endif
         </div>
-    </section>
+    @endif
 
-    <section>
-        <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider mb-3">Compras</h2>
-        <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden mb-4">
+    @if ($tab === 'parcelamentos')
+        <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
-                            <th class="px-4 py-3">Data</th>
-                            <th class="px-4 py-3">Estabelecimento</th>
-                            <th class="px-4 py-3">Categoria</th>
-                            <th class="px-4 py-3">Parcelas</th>
-                            <th class="px-4 py-3 text-right">Valor/parcela</th>
+                            <th class="px-4 py-3">Compra</th>
+                            <th class="px-4 py-3">Valor/parcela</th>
+                            <th class="px-4 py-3">Pagas</th>
+                            <th class="px-4 py-3">Faltam</th>
+                            <th class="px-4 py-3">Progresso</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[var(--border)]">
-                        @forelse ($purchases as $purchase)
+                        @forelse ($installmentPlans as $purchase)
+                            @php
+                                $paid = (int) ($purchase->paid_count ?? 0);
+                                $remaining = (int) ($purchase->remaining_count ?? ($purchase->installments_total - $paid));
+                                $pct = $purchase->installments_total > 0 ? round(($paid / $purchase->installments_total) * 100) : 0;
+                            @endphp
                             <tr>
-                                <td class="px-4 py-2 whitespace-nowrap">
-                                    {{ $purchase->purchase_date ? \Illuminate\Support\Carbon::parse($purchase->purchase_date)->format('d/m/Y') : '—' }}
-                                </td>
-                                <td class="px-4 py-2">{{ $purchase->description }}</td>
-                                <td class="px-4 py-2 text-[var(--text-dim)]">{{ $purchase->category_name ?? '—' }}</td>
-                                <td class="px-4 py-2 text-[var(--text-dim)]">{{ $purchase->installments_total }}x</td>
-                                <td class="px-4 py-2 text-right font-mono {{ $purchase->installment_amount_cents < 0 ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
-                                    R$ {{ number_format($purchase->installment_amount_cents / 100, 2, ',', '.') }}
+                                <td class="px-4 py-2.5">{{ $purchase->display_name }}</td>
+                                <td class="px-4 py-2.5 font-mono text-[var(--text-dim)]">R$ {{ number_format($purchase->installment_amount_cents / 100, 2, ',', '.') }}</td>
+                                <td class="px-4 py-2.5 text-[var(--in)]">{{ $paid }}/{{ $purchase->installments_total }}</td>
+                                <td class="px-4 py-2.5 text-[var(--out)]">{{ $remaining }}</td>
+                                <td class="px-4 py-2.5">
+                                    <div class="w-32 h-1.5 rounded-full bg-[var(--surface-2)] overflow-hidden">
+                                        <div class="h-full bg-[var(--accent)]" style="width: {{ $pct }}%"></div>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-[var(--text-dim)]">
-                                    Nenhuma compra ainda. <a href="{{ route('import.fatura.show') }}" class="text-[var(--accent)] underline">Importar fatura</a>
-                                </td>
+                                <td colspan="5" class="px-4 py-8 text-center text-[var(--text-dim)]">Nenhum parcelamento em aberto.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-        {{ $purchases->links() }}
-    </section>
+    @endif
 @endsection

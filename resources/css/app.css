@@ -7,3 +7,19 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Design tokens — docs/08-ux.md (dark = padrão) */
+:root {
+    --bg: #0B0F14;
+    --surface-1: #131A22;
+    --surface-2: #1B242E;
+    --border: #253040;
+    --text: #E8EDF2;
+    --text-dim: #93A1B0;
+    --text-mute: #5C6B7A;
+    --in: #34D399;
+    --out: #F87171;
+    --accent: #22D3EE;
+    --warn: #FBBF24;
+    --critical: #EF4444;
+}

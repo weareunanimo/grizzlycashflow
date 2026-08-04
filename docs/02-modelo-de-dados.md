@@ -1022,6 +1022,7 @@ substituída pelo fato assim que ele existe. A regra fica isolada em
 
 ## 5. Migrações e evolução do schema
 
-- Ferramenta: **Phinx** (`database/migrations/`), rodada por `bin/console migrate` (CLI ou via rota admin protegida quando a hospedagem não dá SSH).
+- Ferramenta: migrações nativas do **Laravel** (`database/migrations/`, ADR-0005), rodadas por
+  `php artisan migrate` (CLI ou via rota admin protegida quando a hospedagem não dá SSH).
 - Regras de ouro para 10 anos de vida: nunca renomear coluna em uso (adiciona → migra → remove em release posterior); toda migração tem `down`; nada de `DROP` na mesma release que para de usar; migração de dados grande vira job em lotes, não `UPDATE` de 500k linhas.
-- Tabela `migrations` (do Phinx) é a única fonte da verdade da versão do schema.
+- Tabela `migrations` (do Laravel) é a única fonte da verdade da versão do schema.

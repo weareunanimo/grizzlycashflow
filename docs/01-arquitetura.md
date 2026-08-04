@@ -66,10 +66,16 @@ Http ──► Application ──► Domain ◄── Infrastructure
 
 | Camada | Responsabilidade | Pode importar | **Nunca** pode importar |
 |--------|------------------|---------------|--------------------------|
-| **Domain** | Entidades, Value Objects, regras de negócio puras, interfaces de repositório e de serviços externos | Só `Support/` (Money, Clock) | PDO, HTTP, Slim, cURL, `$_SESSION`, `date()` direto |
-| **Application** | Use cases (1 classe = 1 operação), orquestração, transações, DTOs | Domain | Slim, PDO direto, `$_POST` |
-| **Infrastructure** | Repositórios PDO, clientes HTTP de IA, storage de arquivo, fila, e-mail, parsers de PDF/CSV | Domain, Application (DTOs) | Http |
-| **Http** | Roteamento, validação de entrada, serialização, middleware, autenticação | Application, DTOs | Domain diretamente (só via use case), PDO |
+| **Domain** | Entidades, Value Objects, regras de negócio puras, interfaces de repositório e de serviços externos | Só `Support/` (Money, Clock) | PDO, HTTP, `Illuminate\*` (Laravel/Eloquent), cURL, `$_SESSION`, `date()` direto |
+| **Application** | Use cases (1 classe = 1 operação), orquestração, transações, DTOs | Domain | `Illuminate\*`, PDO direto, `$_POST` |
+| **Infrastructure** | Repositórios (Query Builder do Laravel ou PDO), clientes HTTP de IA, storage de arquivo, fila, e-mail, parsers de PDF/CSV | Domain, Application (DTOs) | Http |
+| **Http** | Controllers Laravel, validação de entrada (Form Requests), serialização, middleware, autenticação | Application, DTOs | Domain diretamente (só via use case), PDO |
+
+> **Laravel como infraestrutura, não como dono da regra (ADR-0005):** o framework vive em `Http/` e
+> `Infrastructure/`. `Domain/` e `Application/` são PHP puro, sem `use Illuminate\...` — verificado por
+> `tests/Architecture/DependencyRuleTest.php`. Persistência usa o Query Builder (`DB::table(...)`) nos
+> repositórios; **Eloquent não é usado como entidade de domínio** e nenhum Model atravessa de volta
+> para `Domain/`.
 
 **Por que isso importa em 5 anos:** trocar hospedagem compartilhada por VPS, MySQL por Postgres, ou o provedor de IA não deve tocar em uma linha de regra de negócio. Já vi projetos financeiros morrerem porque a regra de "quando a parcela cai na fatura" estava dentro de um controller.
 

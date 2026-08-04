@@ -9,14 +9,15 @@ de verdade**, e nada é construído antes da coisa que o valida.
 
 Não entrega valor ao usuário, mas define o custo de todas as fases seguintes.
 
-- [ ] Estrutura de pastas, `composer.json`, autoload PSR-4, PHPStan nível 8, PHPUnit
-- [ ] Kernel: container DI, router, middlewares (erro, request-id, CSRF, rate limit), `.env`
-- [ ] `Money`, `Clock`, `Str::normalize`, trigram similarity, `Ulid` — **com testes**
-- [ ] Phinx + migrações do schema completo (doc 02) + seeds (categorias, ~60 regras BR)
-- [ ] Fila MySQL + `cron/tick.php` + watchdog + `bin/console`
-- [ ] Auth: login, sessão server-side, Argon2id, lockout, `bin/console user:create`
+- [ ] Projeto Laravel novo (ADR-0005) + `composer.json` com `"Grizzly\\": "src/"` ao lado de `"App\\": "app/"`
+- [ ] **Teste de regra de dependência arquitetural primeiro** (`tests/Architecture/DependencyRuleTest.php`,
+  barra `Illuminate\*` dentro de `src/Domain`/`src/Application`) — antes de escrever qualquer regra de negócio
+- [ ] `Money`, `Clock`, `Str::normalize`, trigram similarity, `Ulid` em `src/Support/` — **com testes**
+- [ ] Migrações Laravel do schema completo (doc 02) + seeds (categorias, ~60 regras BR)
+- [ ] Fila em MySQL + scheduler do Laravel (`app/Console/Kernel.php`) + comandos `queue:work`/watchdog
+- [ ] Auth: login, sessão server-side, Argon2id, TOTP, lockout — escrito à mão (sem Fortify/Jetstream, ADR-0005), comando `artisan user:create`
 - [ ] Build do front (Tailwind + esbuild), shell da SPA, router client-side, cliente de API
-- [ ] CI: PHPStan + PHPUnit + teste de regra de dependência arquitetural
+- [ ] CI: PHPStan (+ Larastan) + PHPUnit + teste de regra de dependência arquitetural
 - [ ] Deploy manual funcionando na hospedagem real **desde o dia 1** (nada pior que descobrir no fim)
 
 **Aceite:** login funciona em produção, `/admin/health` responde, cron drena job de teste, suíte verde.

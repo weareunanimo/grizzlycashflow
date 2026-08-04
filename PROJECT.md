@@ -7,7 +7,7 @@
 
 - **Versão do documento:** 0.2 (arquitetura calibrada com dados reais — nenhum código de aplicação escrito)
 - **Última atualização:** 2026-08-04
-- **Status:** 🟡 Arquitetura entregue e validada contra CSVs reais do Banco XP — aguardando aprovação do product owner
+- **Status:** 🟢 Arquitetura entregue, validada contra CSVs reais do Banco XP e **totalmente aprovada** — pronta para iniciar a Fase 0
 - **Branch de desenvolvimento:** `claude/personal-finance-architecture-4ub3qs`
 
 ---
@@ -49,10 +49,10 @@ o sistema reconstrói a verdade financeira, sem duplicar nada.
 | Camada | Escolha | Observação |
 |--------|---------|------------|
 | Frontend | HTML + TailwindCSS + JS moderno (ES modules) + Chart.js | Build local (Node só em dev), assets compilados versionados |
-| Backend | PHP 8.2+ | Monólito modular, API-first |
+| Backend | PHP 8.2+ com **Laravel** (ADR-0005) | Monólito modular, API-first. Laravel confinado a `Http/`/`Infrastructure/`; `Domain/`/`Application/` em `src/`, PHP puro, sem `Illuminate\*` |
 | Banco | MySQL 8.0+ / MariaDB 10.4+ | InnoDB, utf8mb4. Sem window functions/CTE (portabilidade) |
 | Hospedagem | PHP compartilhado + cron | DocumentRoot aponta para `public/` |
-| IA | API externa (ver ADR-0003) | Único custo recorrente do projeto |
+| IA | Claude API, nuvem com PII redigida (ADR-0003) | Único custo recorrente do projeto |
 
 **Nada de tecnologia caro.** Custo alvo de infra: hospedagem existente + **US$ 2–8/mês** de API de IA.
 
@@ -87,9 +87,9 @@ Status: 🟢 aprovada · 🟡 proposta (aguarda aprovação) · 🔵 aceita por 
 |-----|---------|--------|
 | [0001](docs/adr/README.md#adr-0001) | Monólito modular com domínio isolado (Clean Architecture pragmática) | 🔵 |
 | [0002](docs/adr/README.md#adr-0002) | Fila de trabalhos em MySQL drenada por cron (sem daemon) | 🟢 aprovada |
-| [0003](docs/adr/README.md#adr-0003) | Postura de privacidade e provedor de IA | 🟡 **precisa aprovação** |
+| [0003](docs/adr/README.md#adr-0003) | Postura de privacidade e provedor de IA: nuvem com PII redigida | 🟢 aprovada |
 | [0004](docs/adr/README.md#adr-0004) | Compra parcelada como entidade de primeira classe (`card_purchases` + `card_installments`) | 🟢 aprovada |
-| [0005](docs/adr/README.md#adr-0005) | Framework: Slim 4 + libs Composer enxutas | 🟡 **precisa aprovação** |
+| [0005](docs/adr/README.md#adr-0005) | Framework: Laravel confinado à infra, atualização deliberada anual | 🟢 aprovada |
 | [0006](docs/adr/README.md#adr-0006) | Dinheiro sempre em centavos inteiros (`BIGINT`) | 🔵 |
 | [0007](docs/adr/README.md#adr-0007) | Dois eixos temporais: competência vs. caixa; cartão agrega em evento único de fatura | 🔵 |
 | [0008](docs/adr/README.md#adr-0008) | Multi-tenant desde o dia 1 (`user_id` em tudo), UX single-user | 🔵 |
@@ -170,11 +170,8 @@ Estas viram testes automatizados no MVP:
 
 ## 8. Pendências abertas (aguardando o PO)
 
-- [ ] Aprovar ADR-0003 (postura de privacidade / IA) — em discussão
-- [ ] Aprovar ADR-0005 (framework) — em discussão
 - [ ] Confirmar dia de fechamento e vencimento do Visa Black XP (inferido: fecha ~17/18, vence dia 01)
 - [ ] Confirmar limite do cartão (para o cálculo de limite livre)
-- [ ] Liberar acesso de escrita ao repositório para esta sessão (push está retornando 403)
 
 ### ✅ Resolvidas em 2026-08-04
 
@@ -186,3 +183,9 @@ Estas viram testes automatizados no MVP:
 - [x] Pagamentos duplos de fatura = antecipação, confirmado pelo PO (ADR-0022, não é duplicidade)
 - [x] ADR-0002 aprovado: fila em MySQL + cron de 1 min
 - [x] ADR-0004 aprovado: `card_purchases` + `card_installments` como entidades próprias
+- [x] ADR-0003 aprovado: nuvem com PII redigida (Claude API), reversível por flag
+- [x] ADR-0005 aprovado: **Laravel** confinado a `Http/`/`Infrastructure/`, `Domain/`/`Application/`
+      continuam PHP puro em `src/`; atualização de versão deliberada e testada (nunca automática),
+      revisão mínima anual — nunca "travar e nunca mais tocar" (risco de segurança de longo prazo)
+
+**As 4 decisões estruturais estão todas aprovadas. Nada mais bloqueia o início da Fase 0.**

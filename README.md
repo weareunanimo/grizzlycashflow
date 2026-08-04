@@ -9,8 +9,8 @@ financeira, sem duplicar nada.
 
 ## Estado atual
 
-🟡 **Fase de arquitetura — nenhuma linha de código de aplicação escrita.**
-Aguardando aprovação do product owner nos ADRs 0002, 0003, 0004 e 0005.
+🟢 **Arquitetura aprovada, calibrada com dados reais do Banco XP. Pronta para a Fase 0.**
+As 4 decisões estruturais (ADRs 0002–0005) estão aprovadas — ver `docs/adr/README.md`.
 
 ## Por onde começar a ler
 
@@ -32,10 +32,12 @@ Aguardando aprovação do product owner nos ADRs 0002, 0003, 0004 e 0005.
 | [10](docs/10-riscos.md) | Riscos, probabilidade, impacto, mitigação |
 | [11](docs/11-seguranca.md) | Segurança, autenticação, backup, LGPD |
 | [12](docs/12-crescimento.md) | Escala futura + arquitetura do WhatsApp |
+| [13](docs/13-perfis-importadores-xp.md) | Perfis de importador do Banco XP e Visa Black (dados reais) |
 
 ## Stack
 
-HTML · TailwindCSS · JavaScript moderno (ES modules) · Chart.js · PHP 8.2+ · MySQL 8 / MariaDB 10.4+ ·
+HTML · TailwindCSS · JavaScript moderno (ES modules) · Chart.js · PHP 8.2+ com **Laravel** (confinado
+à camada de infraestrutura — regra de negócio em PHP puro, ver ADR-0005) · MySQL 8 / MariaDB 10.4+ ·
 hospedagem PHP compartilhada com cron.
 
 Custo de infraestrutura alvo: hospedagem existente + **~US$ 0,30/mês** de API de IA (teto configurado em US$ 5).

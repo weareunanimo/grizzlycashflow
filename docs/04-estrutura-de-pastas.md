@@ -1,5 +1,24 @@
 # 04 — Estrutura de Pastas e Deploy
 
+> **Nota de atualização (ADR-0005, 2026-08-04):** o framework escolhido foi **Laravel**, não Slim (a
+> árvore abaixo refletia a proposta original). Mapeamento para quem já leu a versão anterior:
+>
+> | Proposta original | Com Laravel |
+> |---|---|
+> | `src/Kernel/` (bootstrap/DI/router próprios) | `bootstrap/`, `config/`, `app/Providers/` do Laravel |
+> | `bin/console` (CLI próprio) | `artisan` + comandos custom em `app/Console/Commands/` |
+> | `cron/tick.php` + crontab de 1 linha | **igual na prática**: 1 linha de cron chamando `php artisan schedule:run` a cada minuto; o *scheduler* do Laravel (`app/Console/Kernel.php`) decide o que rodar — mesmo desenho do ADR-0002, sintaxe do Laravel por baixo |
+> | `phinx.php` + `database/migrations/` | `database/migrations/` **continua o mesmo caminho** — é a convenção nativa do Laravel; roda com `php artisan migrate` no lugar de `vendor/bin/phinx` |
+> | `Http/routes.php` | `routes/api.php` (Laravel) |
+>
+> **O que não muda:** `Domain/` e `Application/` continuam existindo como PHP puro, isolados do
+> framework — só que agora vivem em `src/` com namespace próprio (`Grizzly\Domain`, `Grizzly\Application`),
+> registrado via `"Grizzly\\": "src/"` no `composer.json`, **ao lado** do namespace padrão
+> `"App\\": "app/"` do Laravel. `app/` fica reservado para a cola fina do framework (Controllers,
+> Form Requests, Console Commands, Service Providers) — que só chama os use cases de `src/Application/`,
+> nunca contém regra de negócio. Isso preserva o teste de regra de dependência do ADR-0001 sem abrir
+> mão da produtividade do Laravel.
+
 ## 1. Árvore do repositório
 
 ```
@@ -9,7 +28,7 @@ grizzlycashflow/
 ├── composer.json / composer.lock
 ├── package.json                     # só dev: tailwind + esbuild
 ├── phpunit.xml
-├── phinx.php
+├── artisan                          # CLI do Laravel (migrate, queue:work, schedule:run, comandos custom)
 ├── .env.example                     # nunca commitar .env
 ├── .editorconfig / .gitignore
 │
@@ -188,16 +207,17 @@ grizzlycashflow/
 │   └── build.mjs                    # esbuild
 │
 ├── database/
-│   ├── migrations/                  # Phinx, uma por mudança
+│   ├── migrations/                  # Laravel, uma por mudança
 │   └── seeds/
 │
 ├── storage/                         # ⚠️ FORA do webroot · não versionado
 │   ├── uploads/{yyyy}/{mm}/         # documentos originais
 │   ├── logs/ · cache/ · backups/ · tmp/
 │
-├── bin/console                      # CLI: migrate, queue:work, cron:tick, backup:run,
-│                                    #      reprocess:documents, reindex:classifier, export:all
-├── cron/tick.php                    # entry point do cron
+├── app/Console/Commands/             # comandos artisan custom:
+│                                    #   queue:work, backup:run, reprocess:documents,
+│                                    #   reindex:classifier, export:all, user:create
+├── app/Console/Kernel.php            # scheduler — decide o que roda a cada minuto de cron
 │
 ├── tests/
 │   ├── Unit/                        # domínio puro — rápido, sem banco
@@ -259,46 +279,47 @@ Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains
 # local
 npm run build                       # tailwind + esbuild → public/assets/dist
 composer install --no-dev -o        # autoloader otimizado
-php bin/console test                # suite completa; falha = não sobe
+php artisan test                    # suite completa; falha = não sobe
 git push origin <branch>
 
 # no servidor (SSH ou script deploy.php protegido por token)
 git pull --ff-only
-php bin/console migrate             # migrações
-php bin/console cache:clear
+php artisan migrate                 # migrações
+php artisan config:cache && php artisan route:cache
 ```
 
 - **Sem SSH?** Rota `POST /admin/deploy` protegida por token no `.env` que faz pull + migrate,
   ou upload por FTP + rota `POST /admin/migrate`. Documentado, com log e auditoria.
-- **Rollback:** `git checkout <tag anterior>` + `php bin/console migrate:rollback`. Toda release
+- **Rollback:** `git checkout <tag anterior>` + `php artisan migrate:rollback`. Toda release
   ganha uma tag e um dump do banco antes de migrar.
 
 ### Crontab (única linha necessária)
 
 ```cron
-* * * * * /usr/bin/php /home/usuario/app/cron/tick.php >> /home/usuario/app/storage/logs/cron.log 2>&1
+* * * * * /usr/bin/php /home/usuario/app/artisan schedule:run >> /home/usuario/app/storage/logs/cron.log 2>&1
 ```
 
-`tick.php` decide internamente o que rodar (ver fluxo 10 em `03-fluxos.md`). Uma linha só de
-cron mantém o sistema inteiro vivo — importante porque muitos hosts limitam o número de tarefas.
+O *scheduler* do Laravel (`app/Console/Kernel.php`) decide internamente o que rodar a cada minuto
+(ver fluxo 10 em `03-fluxos.md`) — mesmo desenho do ADR-0002 (fila em MySQL, claim atômico, watchdog),
+só que agendado pela sintaxe nativa do Laravel em vez de um script próprio. Uma linha só de cron
+mantém o sistema inteiro vivo — importante porque muitos hosts limitam o número de tarefas.
 
-## 3. Dependências Composer (mínimas e estáveis)
+## 3. Dependências Composer (ADR-0005: Laravel como base)
 
 | Pacote | Para quê | Por que este |
 |--------|----------|--------------|
-| `slim/slim` + `slim/psr7` | roteamento e PSR-7 | pequeno, maduro, sem mágica |
-| `php-di/php-di` | injeção de dependência | bindings explícitos, compilável |
-| `smalot/pdfparser` | texto de PDF | PHP puro, roda em qualquer host |
-| `robmorgan/phinx` | migrações | independente de framework |
-| `robthree/twofactorauth` | TOTP | 2FA |
-| `monolog/monolog` | log estruturado | padrão de fato |
-| `vlucas/phpdotenv` | `.env` | trivial |
-| `phpmailer/phpmailer` | e-mail | funciona em host compartilhado |
-| `phpunit/phpunit` (dev) | testes | |
-| `phpstan/phpstan` (dev) | análise estática nível 8 | pega bug antes do runtime |
+| `laravel/laravel` | framework: roteamento, sessão, validação, Query Builder, filas, e-mail, migrações | produtividade desde o dia 1; confinado a `Http/`/`Infrastructure/` (ver nota de arquitetura acima) |
+| `robthree/twofactorauth` | TOTP | 2FA — mais leve que Fortify/Jetstream para o que precisamos |
+| `smalot/pdfparser` | texto de PDF (V1) | PHP puro, roda em qualquer host |
+| `phpunit/phpunit` (dev) | testes | vem com o Laravel, mantido |
+| `phpstan/phpstan` (dev) | análise estática nível 8 (com `larastan/larastan`) | pega bug antes do runtime, inclusive dentro de código Laravel |
 
-**Deliberadamente ausentes:** ORM, framework full-stack, cliente HTTP pesado (usamos cURL direto
-com um wrapper de 60 linhas), fila externa, Redis. Cada dependência é um passivo de 10 anos.
+**Deliberadamente ausentes/evitados:** Eloquent **como entidade de domínio** (Query Builder sim,
+Eloquent-como-Model não atravessa para `Domain/`), Fortify/Jetstream/Breeze (autenticação escrita à
+mão nos moldes do ADR-0009 — sessão server-side, Argon2id, TOTP — mais simples e mais alinhada ao
+projeto do que o pacote de scaffolding completo), fila externa (Redis/SQS) e cliente HTTP pesado além
+do que o Laravel já traz. Cada dependência extra é um passivo de 10 anos — a escolha de Laravel troca
+várias dependências pequenas por uma só, mas bem confinada (ver ADR-0005).
 
 ## 4. Padrões de código
 

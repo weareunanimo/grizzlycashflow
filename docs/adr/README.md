@@ -28,6 +28,14 @@ verificada por teste automatizado**.
 **Consequências:** ~15% mais código inicial (interfaces, DTOs). Em troca: trocar banco, provedor de IA
 ou hospedagem não toca regra de negócio; testes de domínio rodam em milissegundos sem banco.
 
+> **Nota (ADR-0005, 2026-08-04):** a linha "Framework full-stack (Laravel)" acima foi rejeitada como
+> **padrão de arquitetura geral** (lógica de negócio dentro do framework) — não como escolha de
+> ferramenta. O ADR-0005 aprovou Laravel depois, mas **confinado à camada de infraestrutura**
+> (`Infrastructure/`/`Http/`), com `Domain/`/`Application/` permanecendo PHP puro e um teste
+> automatizado proibindo `Illuminate\*` de vazar para dentro deles. As duas decisões não se
+> contradizem: esta ADR decide a *forma* (monólito modular com domínio isolado); o ADR-0005 decide a
+> *ferramenta* usada só na camada de fora.
+
 ---
 
 ## ADR-0002 — Fila de trabalhos em MySQL drenada por cron 🟢 **aprovada em 2026-08-04**
@@ -55,7 +63,7 @@ captura por texto/voz — por isso esses caminhos têm processamento síncrono n
 
 ---
 
-## ADR-0003 — Postura de privacidade e provedor de IA 🟡 **precisa aprovação**
+## ADR-0003 — Postura de privacidade e provedor de IA 🟢 **aprovada em 2026-08-04**
 
 **Contexto:** para ler fatura escaneada, print de notificação e frase em português, precisamos de um
 modelo que não roda em hospedagem compartilhada. Isso significa **enviar dado financeiro para fora**.
@@ -75,7 +83,7 @@ a qualquer momento com um flag**.
 **Consequências:** o sistema tem um "modo privado" real e reversível. A escolha não é permanente:
 `AiProvider` é interface, e o front não sabe quem classificou.
 
-**⚠️ Aprovar?** Esta é a decisão mais pessoal do projeto. Precisa da sua palavra.
+**Aprovado pelo PO em 2026-08-04.**
 
 ---
 
@@ -101,24 +109,45 @@ Por isso está aqui para aprovação.
 
 ---
 
-## ADR-0005 — Framework e dependências 🟡 **precisa aprovação**
+## ADR-0005 — Framework e dependências 🟢 **aprovada em 2026-08-04 (revisada — decisão final é Laravel)**
 
 | Opção | Prós | Contras |
 |-------|------|---------|
-| **A) Slim 4 + PHP-DI + PDO + Phinx** ✅ | ~5 pacotes pequenos e maduros; sem mágica; roda em qualquer host; upgrade indolor; SQL explícito envelhece bem | escrevemos nós validação, autorização, sessão (≈1 semana de Fase 0) |
-| B) Laravel | produtividade alta, ecossistema, Eloquent, filas, auth prontos | domínio acoplado ao framework; upgrade major anual; ~10× mais arquivos de vendor; performance pior em shared host; Eloquent puxa lógica de negócio para o model |
-| C) Symfony completo | robusto, arquitetura séria | verboso, curva alta, pesado para 1 usuário |
-| D) Zero dependência (tudo próprio) | controle total | reescrever router/PSR-7/migrações é tempo gasto em problema resolvido |
+| Slim 4 + PHP-DI + PDO + Phinx | ~5 pacotes pequenos e maduros; sem mágica; upgrade indolor | escreveríamos nós validação, autorização, sessão (≈1 semana extra na Fase 0) |
+| **Laravel** ✅ | produtividade alta desde o dia 1; auth, sessão, validação, filas, e-mail e migrações já prontos; ecossistema maduro | upgrade major anual do framework em geral; peso maior em host compartilhado se mal configurado; Eloquent tende a puxar regra de negócio para o model se não for contido |
+| Symfony completo | robusto, arquitetura séria | verboso, curva alta, pesado para 1 usuário |
+| Zero dependência (tudo próprio) | controle total | reescrever router/validação/migrações é tempo gasto em problema já resolvido |
 
-**Decisão proposta:** **A**. Dependências: `slim/slim`, `slim/psr7`, `php-di/php-di`,
-`smalot/pdfparser`, `robmorgan/phinx`, `robthree/twofactorauth`, `monolog/monolog`,
-`vlucas/phpdotenv`, `phpmailer/phpmailer` (+ PHPUnit e PHPStan em dev). **Sem ORM.**
+**Decisão final (revisada em relação à proposta original):** **Laravel**, com duas condições que
+preservam a longevidade do sistema — sem elas, a decisão reabriria os riscos R09/R10 do documento de
+riscos:
 
-**Consequências:** ~1 semana extra na Fase 0. Em troca, 10 anos sem upgrade traumático e domínio que
-não depende de framework nenhum. Cada dependência é um passivo de longo prazo — nove é pouco.
+1. **Laravel fica confinado à camada de infraestrutura (`Infrastructure/` e `Http/`).** `Domain/` e
+   `Application/` (ver ADR-0001) continuam PHP puro, **zero `use Illuminate\...`**. Persistência usa o
+   Query Builder do Laravel (`DB::table(...)`) ou PDO direto dentro dos repositórios — **nunca**
+   Eloquent como entidade de domínio, e nunca um Model do Eloquent atravessando a fronteira de volta
+   para `Domain/`. O teste arquitetural de dependência (`tests/Architecture/DependencyRuleTest.php`,
+   já previsto na Fase 0) passa a barrar também `Illuminate\*` dentro de `Domain/`/`Application/`.
+2. **Atualização deliberada e testada, nunca automática.** A versão fica travada em `composer.lock`
+   (padrão do PHP — nada se atualiza sozinho por padrão). A prática adotada é: revisão da versão do
+   Laravel **uma vez por ano, ou antes disso se sair um aviso de segurança relevante**, com a suíte de
+   testes completa rodando verde antes de qualquer atualização ir para produção. Nunca "deixar rodando
+   pra sempre sem tocar" — isso deixaria falhas de segurança conhecidas sem correção num sistema com
+   toda a vida financeira do usuário (risco R07).
 
-**⚠️ Aprovar?** Se você prefere velocidade inicial a longevidade, Laravel é a escolha; diga e eu
-adapto (o domínio isolado continua igual — mudaria só a camada de infra).
+**Dependências:** `laravel/laravel` (framework), `laravel/sanctum` (se necessário para tokens de API
+futuros), `robthree/twofactorauth` (TOTP — o pacote nativo do Laravel para 2FA é pago/Fortify+Jetstream
+mais pesado do que precisamos), `smalot/pdfparser` (V1, extração de PDF) — restante do stack usa o que
+o Laravel já traz (Monolog, PHPMailer via `Mail`, migrações via `php artisan migrate` no lugar de Phinx).
+
+**Consequências:** MVP começa mais rápido (login, sessão, validação, e-mail já vêm prontos — a semana
+que seria gasta nisso vai para features). Em troca, a Fase 0 inclui uma tarefa extra e não-negociável:
+configurar o teste de regra de dependência **antes** de escrever a primeira linha de `Domain/`, para
+que a conveniência do Eloquent nunca vaze pra dentro da regra de negócio. Revisão anual de versão vira
+item permanente do checklist de manutenção (`docs/11-seguranca.md`).
+
+**Aprovado pelo PO em 2026-08-04**, com a condição de atualização deliberada (nunca automática) —
+condição que já é reforçada pela prática padrão do Composer e formalizada acima como política do projeto.
 
 ---
 

@@ -1,0 +1,111 @@
+Data;Hora;Descricao;Valor;Saldo
+04/08/26;10:19:13;Rendimento automático;R$ 0,04;R$ 1.979,96
+03/08/26;10:15:22;Rendimento automático;R$ 0,29;R$ 1.979,92
+03/08/26;08:08:55;Pagamento para BANCO XP S.A;-R$ 2.710,53;R$ 1.979,63
+03/08/26;08:00:18;Pagamento para CELESC DISTRIBUICAO S.A;-R$ 88,27;R$ 4.690,16
+01/08/26;09:40:58;Pix enviado para Joana Haas Junqueira;-R$ 100,00;R$ 4.778,43
+31/07/26;20:48:28;Pix enviado para ** *** *** Douglas Ferreira Santos;-R$ 230,00;R$ 4.878,43
+31/07/26;10:21:50;Rendimento automático;R$ 0,23;R$ 5.108,43
+30/07/26;10:55:52;Pix enviado para Odontopediatria Afetiva Blumenau Ltda;-R$ 290,00;R$ 5.108,20
+30/07/26;10:18:15;Rendimento automático;R$ 0,20;R$ 5.398,20
+30/07/26;08:25:08;Pix recebido de Fernando de Paula;R$ 1.000,00;R$ 5.398,00
+29/07/26;21:33:22;PAGAMENTO DE FATURA;-R$ 2.710,53;R$ 4.398,00
+29/07/26;19:14:00;Pix enviado para Atena Farmacia de Manipulacao Ltda;-R$ 13,00;R$ 7.108,53
+29/07/26;11:02:28;Pix recebido de Jonas Werner;R$ 450,00;R$ 7.121,53
+29/07/26;10:15:04;Rendimento automático;R$ 0,33;R$ 6.671,53
+29/07/26;06:22:33;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 6.671,20
+28/07/26;11:54:35;Pix recebido de Fernando de Paula;R$ 315,71;R$ 6.931,20
+28/07/26;10:20:07;Rendimento automático;R$ 0,36;R$ 6.615,49
+27/07/26;05:17:29;Rendimento automático;R$ 0,56;R$ 6.615,13
+24/07/26;05:19:18;Rendimento automático;R$ 0,28;R$ 6.614,57
+23/07/26;18:56:27;Pix enviado para Ministerio da Fazenda;-R$ 211,70;R$ 6.614,29
+23/07/26;11:22:04;Pix recebido de Fumaconica Company;R$ 27,00;R$ 6.825,99
+23/07/26;05:19:11;Rendimento automático;R$ 0,24;R$ 6.798,99
+22/07/26;19:58:46;Pix recebido de Anderson de Castro Filho;R$ 112,00;R$ 6.798,75
+22/07/26;06:37:17;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 6.686,75
+22/07/26;05:18:39;Rendimento automático;R$ 0,28;R$ 6.946,75
+21/07/26;22:49:19;Pix enviado para Gabriela Antunes Cordeiro;-R$ 32,00;R$ 6.946,47
+21/07/26;10:40:02;Rendimento automático do dia 16/07/2026;R$ 0,18;R$ 6.978,47
+21/07/26;06:00:25;Rendimento automático;R$ 0,24;R$ 6.978,29
+20/07/26;07:00:02;Rendimento automático;R$ 0,38;R$ 6.978,05
+17/07/26;05:19:33;Rendimento automático;R$ 0,17;R$ 6.977,67
+15/07/26;16:00:16;Rendimento automático do dia 14/07/2026;R$ 0,18;R$ 6.977,50
+15/07/26;10:23:46;Rendimento automático;R$ 0,22;R$ 6.977,32
+15/07/26;08:00:55;Pagamento para BANCO VOLKSWAGEN S.A.;-R$ 2.284,43;R$ 6.977,10
+15/07/26;06:33:05;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 9.261,53
+13/07/26;23:17:56;Pix enviado para Mm Turismo & Viagens S.A  Em Recuperacao Judicial;-R$ 375,71;R$ 9.521,53
+13/07/26;21:22:41;Pix enviado para **.***.*** Victor Martins Tavares Alencar;-R$ 500,00;R$ 9.897,24
+13/07/26;05:18:40;Rendimento automático;R$ 0,35;R$ 10.397,24
+11/07/26;14:10:19;Pix enviado para Marcelo Viana Gerlach;-R$ 225,00;R$ 10.396,89
+11/07/26;13:07:06;Pix enviado para **.***.*** Victor Martins Tavares Alencar;-R$ 300,00;R$ 10.621,89
+10/07/26;08:06:13;Pagamento para ESCOLA RIACHO DOCE LTDA;-R$ 236,73;R$ 10.921,89
+10/07/26;08:06:09;Pagamento para ESCOLA RIACHO DOCE LTDA;-R$ 745,00;R$ 11.158,62
+10/07/26;08:06:09;Pagamento para ESCOLA RIACHO DOCE LTDA;-R$ 1.419,00;R$ 11.903,62
+10/07/26;08:03:38;Pagamento para RESIDENCIAL RECANTO DAS ARARAS;-R$ 540,98;R$ 13.322,62
+10/07/26;08:00:52;Pagamento para MUNICIPIO DE BLUMENAU;-R$ 114,03;R$ 13.863,60
+10/07/26;05:19:10;Rendimento automático;R$ 0,22;R$ 13.977,63
+09/07/26;17:09:12;Rendimento automático;R$ 0,16;R$ 13.977,41
+09/07/26;16:23:25;Pix enviado para Marcos Fiorini Scotti;-R$ 175,00;R$ 13.977,25
+08/07/26;06:02:17;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 14.152,25
+08/07/26;05:18:01;Rendimento automático;R$ 0,13;R$ 14.412,25
+07/07/26;05:15:09;Rendimento automático;R$ 0,09;R$ 14.412,12
+06/07/26;10:15:16;Pix enviado para Joana Haas Junqueira;-R$ 2.100,00;R$ 14.412,03
+06/07/26;05:18:00;Rendimento automático;R$ 0,51;R$ 16.512,03
+05/07/26;12:26:17;PAGAMENTO DE FATURA;-R$ 9.271,21;R$ 16.511,52
+03/07/26;08:01:33;Salário recebido;R$ 13.359,00;R$ 25.782,73
+03/07/26;05:20:40;Rendimento automático;R$ 0,72;R$ 12.423,73
+02/07/26;17:42:19;Pix enviado para Luciene Luz Amaral;-R$ 159,00;R$ 12.423,01
+02/07/26;13:54:44;Pix enviado para Papelaria Danubio Ltda;-R$ 3,00;R$ 12.582,01
+02/07/26;11:01:15;Pix enviado para ** *** *** Rubens Cesar Pinheiro Junior;-R$ 95,00;R$ 12.585,01
+02/07/26;05:17:02;Rendimento automático;R$ 0,69;R$ 12.680,01
+01/07/26;08:51:42;PAGAMENTO DE FATURA;-R$ 1.093,66;R$ 12.679,32
+01/07/26;08:09:15;Pagamento para BANCO XP S.A;-R$ 1.093,66;R$ 13.772,98
+01/07/26;08:00:23;Pagamento para CELESC DISTRIBUICAO S.A;-R$ 429,84;R$ 14.866,64
+01/07/26;06:01:31;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 15.296,48
+01/07/26;05:14:57;Rendimento automático;R$ 0,75;R$ 15.556,48
+30/06/26;08:41:55;Pix recebido de Fernando de Paula;R$ 1.000,00;R$ 15.555,73
+30/06/26;05:19:16;Rendimento automático;R$ 0,63;R$ 14.555,73
+29/06/26;05:14:07;Rendimento automático;R$ 1,11;R$ 14.555,10
+26/06/26;05:19:04;Rendimento automático;R$ 0,55;R$ 14.553,99
+25/06/26;20:26:35;Pix enviado para 99 Food Ltda.;-R$ 49,10;R$ 14.553,44
+25/06/26;05:22:11;Rendimento automático;R$ 0,59;R$ 14.602,54
+24/06/26;15:48:46;Pix recebido de Conexa Saude;R$ 1.004,51;R$ 14.601,95
+24/06/26;15:48:31;Pix recebido de Conexa Saude;R$ 1.406,19;R$ 13.597,44
+24/06/26;12:59:16;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 12.191,25
+24/06/26;05:14:02;Rendimento automático;R$ 0,50;R$ 12.451,25
+22/06/26;11:46:17;Pix enviado para Ramon Rocha da Silveira Marques ***********;-R$ 240,00;R$ 12.450,75
+22/06/26;10:46:54;TED recebida de FERNANDO DE PAULA;R$ 1.169,07;R$ 12.690,75
+22/06/26;05:12:45;Rendimento automático;R$ 0,78;R$ 11.521,68
+20/06/26;14:25:31;Pix enviado para Escola Riacho Doce Ltda;-R$ 50,00;R$ 11.520,90
+19/06/26;18:12:47;Pix enviado para **.***.*** Victor Martins Tavares Alencar;-R$ 180,00;R$ 11.570,90
+19/06/26;05:10:41;Rendimento automático;R$ 0,43;R$ 11.750,90
+18/06/26;05:14:23;Rendimento automático;R$ 0,35;R$ 11.750,47
+17/06/26;06:50:51;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 11.750,12
+17/06/26;05:12:49;Rendimento automático;R$ 0,32;R$ 12.010,12
+16/06/26;14:35:45;PAGAMENTO DE FATURA;-R$ 7.813,76;R$ 12.009,80
+16/06/26;14:35:19;Pix enviado para Ministerio da Fazenda;-R$ 209,38;R$ 19.823,56
+16/06/26;05:12:57;Rendimento automático;R$ 0,62;R$ 20.032,94
+15/06/26;22:12:03;Pix enviado para Arnaldo Bastos Junior;-R$ 15,00;R$ 20.032,32
+15/06/26;17:03:09;Pix enviado para Mariana Kohl;-R$ 763,32;R$ 20.047,32
+15/06/26;08:01:04;Pagamento para BANCO VOLKSWAGEN S.A.;-R$ 2.284,43;R$ 20.810,64
+15/06/26;05:15:52;Rendimento automático;R$ 0,82;R$ 23.095,07
+12/06/26;15:03:31;Pix enviado para Qms Internacional Programacao Ltda;-R$ 29,99;R$ 23.094,25
+12/06/26;14:21:01;Pix enviado para Mariana Kohl;-R$ 450,00;R$ 23.124,24
+12/06/26;05:14:06;Rendimento automático;R$ 0,52;R$ 23.574,24
+11/06/26;17:26:10;Pix recebido de Fernando de Paula;R$ 2.500,00;R$ 23.573,72
+11/06/26;05:15:33;Rendimento automático;R$ 0,49;R$ 21.073,72
+10/06/26;08:04:19;Pagamento para ESCOLA RIACHO DOCE LTDA;-R$ 1.419,00;R$ 21.073,23
+10/06/26;08:04:19;Pagamento para ESCOLA RIACHO DOCE LTDA;-R$ 745,00;R$ 22.492,23
+10/06/26;08:04:18;Pagamento para ESCOLA RIACHO DOCE LTDA;-R$ 236,73;R$ 23.237,23
+10/06/26;08:02:00;Pagamento para RESIDENCIAL RECANTO DAS ARARAS;-R$ 475,01;R$ 23.473,96
+10/06/26;08:00:51;Pagamento para MUNICIPIO DE BLUMENAU;-R$ 114,03;R$ 23.948,97
+10/06/26;06:49:35;Pix enviado para Joana Haas Junqueira;-R$ 4.500,00;R$ 24.063,00
+10/06/26;06:38:15;Pix enviado para Valentina Lopes do Val;-R$ 260,00;R$ 28.563,00
+10/06/26;06:25:02;Pix enviado para Joana Haas Junqueira;-R$ 2.100,00;R$ 28.823,00
+10/06/26;05:14:59;Rendimento automático;R$ 0,75;R$ 30.923,00
+09/06/26;05:12:56;Rendimento automático;R$ 0,72;R$ 30.922,25
+08/06/26;05:14:18;Rendimento automático;R$ 0,71;R$ 30.921,53
+05/06/26;13:34:01;Pix enviado para Art Natural Ltda;-R$ 105,00;R$ 30.920,82
+05/06/26;11:26:41;Pagamento para MUNICIPIO DE BLUMENAU;-R$ 60,63;R$ 31.025,82
+05/06/26;05:12:56;Rendimento automático;R$ 0,94;R$ 31.086,45
+05/06/26;03:37:05;Pix recebido de Forum do Campo Lacaniano Em Sao Paulo - Fcl-Sp;R$ 3.031,50;R$ 31.085,51

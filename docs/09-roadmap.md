@@ -35,14 +35,21 @@ Não entrega valor ao usuário, mas define o custo de todas as fases seguintes.
 - [ ] `StatementCycleCalculator` (feriados nacionais + dia útil)
 - [ ] Cálculo de comprometido e limite disponível
 
-### Semana 2–3 — Importação de PDF
+### Semana 2–3 — Importação de CSV (Banco XP + Visa Black XP)
+> **Revisado em 2026-08-04 após receber os arquivos reais.** O CSV da fatura XP já contém tudo que o
+> objetivo nº 1 precisa (data da compra, estabelecimento, valor, `N de M`). O parser de PDF saiu do
+> MVP e foi para V1 — spec completa em `docs/13-perfis-importadores-xp.md`.
+
 - [ ] Pipeline de ingestão completo (Document → job → extract → normalize → preview → commit)
-- [ ] `PdfTextExtractor` + `LineLayoutBuilder` + `GenericHeuristicStatement`
-- [ ] Templates dos emissores do PO (a confirmar)
-- [ ] `InstallmentPatternDetector` + `PurchaseGroupKey` + reconstrução/projeção
-- [ ] Validação cruzada soma × total (bloqueia commit se não fechar)
-- [ ] Extração via LLM como fallback (inclui PDF escaneado) + `FakeProvider` nos testes
-- [ ] Senha de PDF
+- [ ] Perfil `xp_cartao_fatura_csv` + perfil `xp_conta_csv`
+- [ ] `InstallmentPatternDetector` (`N de M`) + `PurchaseGroupKey` + reconstrução/projeção
+- [ ] **Validação por cadeia de saldo** no extrato (ADR-0019) — bloqueia commit se romper
+- [ ] **Importação incremental de fatura aberta** (ADR-0018) — reimportação semanal idempotente
+- [ ] `MerchantNormalizer` com a lista real de prefixos de gateway (MP*, IFD*, SHOPEE*, …)
+- [ ] Consolidação de rendimento automático (ADR-0020, se aprovado)
+- [ ] Pareamento `PAGAMENTO DE FATURA` (extrato) ↔ fatura via `transfer_group_id`
+- [ ] Casos de regressão dos dados reais: colisões `MP *DIGITALIMPORT` e `MP*MERCADOLIVRE`,
+      parcela `de 1`, estornos negativos, `YELUMSEG PARC8`
 
 ### Semana 3–4 — Conciliação + Classificação
 - [ ] `FingerprintBuilder`, `SimilarityScorer`, `Reconciler`, `TransactionMerger`
@@ -71,7 +78,9 @@ Não entrega valor ao usuário, mas define o custo de todas as fases seguintes.
 
 ## V1 — "Centralizar tudo" (4–5 semanas)
 
-- [ ] **Importação de CSV**: detecção de layout, mapeamento assistido, perfis salvos, preview
+- [ ] **Importação de PDF de fatura** (movida do MVP): `PdfTextExtractor`, `LineLayoutBuilder`,
+  `GenericHeuristicStatement`, template do XP, fallback de extração por LLM
+- [ ] **CSV genérico**: detecção de layout, mapeamento assistido pelo usuário, perfis salvos
 - [ ] **Captura por texto** (parser BR + LLM) com confirmação por chips
 - [ ] **Captura por imagem** (visão) — prints de PIX/boleto/TED/cartão
 - [ ] **Captura por voz** (Web Speech + fallback de transcrição no servidor)

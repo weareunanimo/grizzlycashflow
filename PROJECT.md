@@ -5,9 +5,9 @@
 > Antes de implementar qualquer coisa, leia este arquivo. Ao decidir algo novo,
 > registre aqui **no mesmo commit** da implementação.
 
-- **Versão do documento:** 0.1 (fase de arquitetura — nenhum código escrito)
-- **Última atualização:** 2026-08-03
-- **Status:** 🟡 Arquitetura entregue — aguardando aprovação do product owner
+- **Versão do documento:** 0.2 (arquitetura calibrada com dados reais — nenhum código de aplicação escrito)
+- **Última atualização:** 2026-08-04
+- **Status:** 🟡 Arquitetura entregue e validada contra CSVs reais do Banco XP — aguardando aprovação do product owner
 - **Branch de desenvolvimento:** `claude/personal-finance-architecture-4ub3qs`
 
 ---
@@ -74,6 +74,7 @@ o sistema reconstrói a verdade financeira, sem duplicar nada.
 | [docs/10-riscos.md](docs/10-riscos.md) | Riscos, probabilidade, impacto, mitigação |
 | [docs/11-seguranca.md](docs/11-seguranca.md) | Segurança, autenticação, backup, LGPD |
 | [docs/12-crescimento.md](docs/12-crescimento.md) | Escala futura + arquitetura do WhatsApp |
+| [docs/13-perfis-importadores-xp.md](docs/13-perfis-importadores-xp.md) | ⭐ Perfis do Banco XP e do Visa Black, derivados dos arquivos reais |
 | [docs/adr/README.md](docs/adr/README.md) | **Todos os ADRs (decisões arquiteturais)** |
 
 ---
@@ -101,6 +102,10 @@ Status: 🟢 aprovada · 🟡 proposta (aguarda aprovação) · 🔵 aceita por 
 | [0015](docs/adr/README.md#adr-0015) | Anexos fora do webroot, servidos por PHP com autorização | 🔵 |
 | [0016](docs/adr/README.md#adr-0016) | Snapshots materializados para performance de gráficos | 🔵 |
 | [0017](docs/adr/README.md#adr-0017) | WhatsApp como canal de ingestão, não como módulo novo | ⚪ V3 |
+| [0018](docs/adr/0018-fatura-aberta-e-importacao-incremental.md) | Fatura aberta e importação incremental idempotente | 🔵 |
+| [0019](docs/adr/0019-validacao-de-integridade-por-cadeia-de-saldo.md) | Validação por cadeia de saldo + conferência cruzada entre canais | 🔵 |
+| [0020](docs/adr/0020-consolidacao-de-lancamentos-de-ruido.md) | Consolidação mensal de lançamentos de ruído (rendimento automático) | 🟡 **precisa aprovação** |
+| [0021](docs/adr/0021-deteccao-de-recorrencia-por-cluster-de-valor.md) | Detecção de recorrência por favorecido **e** cluster de valor | 🔵 |
 
 ---
 
@@ -144,6 +149,10 @@ Estas viram testes automatizados no MVP:
 8. **I8** — Nenhum `document` é acessível por URL pública direta.
 9. **I9** — Deletar nunca é físico: `deleted_at`, e as `evidences` permanecem.
 10. **I10** — Uma `card_purchase` reimportada de outra fatura é **reconhecida**, nunca recriada (via `group_key`).
+11. **I11** — Importar o mesmo arquivo N vezes produz exatamente o mesmo estado final (ADR-0018).
+12. **I12** — Reimportar uma fatura aberta nunca sobrescreve categoria definida pelo usuário (ADR-0018).
+13. **I13** — Importação com `has_running_balance` e cadeia de saldo rompida nunca é commitada (ADR-0019).
+14. **I14** — A soma das transações importadas é igual à soma das linhas do arquivo, mesmo com consolidação (ADR-0020).
 
 ---
 
@@ -163,6 +172,16 @@ Estas viram testes automatizados no MVP:
 - [ ] Aprovar ADR-0003 (postura de privacidade / IA)
 - [ ] Aprovar ADR-0004 (modelo de parcelas)
 - [ ] Aprovar ADR-0005 (framework)
-- [ ] Informar: bancos/cartões usados (para priorizar templates de PDF e CSV)
-- [ ] Informar: se as faturas PDF vêm protegidas por senha
-- [ ] Enviar 1 fatura PDF real + 1 CSV real (anonimizados ou não) para calibrar os parsers
+- [ ] Aprovar ADR-0020 (consolidação de rendimento automático)
+- [ ] Confirmar dia de fechamento e vencimento do Visa Black XP (inferido: fecha ~17/18, vence dia 01)
+- [ ] Confirmar limite do cartão (para o cálculo de limite livre)
+- [ ] 🔴 Verificar no app do XP os pagamentos de fatura aparentemente duplicados
+      (R$ 2.710,53 em 29/07 e 03/08; R$ 1.093,66 duas vezes em 01/07) — ver `docs/13-perfis-importadores-xp.md#13`
+- [ ] Liberar acesso de escrita ao repositório para esta sessão (push está retornando 403)
+
+### ✅ Resolvidas em 2026-08-04
+
+- [x] Instituições: **Banco XP** (conta) + **Visa Black XP** (cartão)
+- [x] Faturas **não** têm senha → `PdfDecryptor` sai do caminho crítico do MVP
+- [x] Amostras reais recebidas: extrato (110 lançamentos) e fatura (110 itens) → perfis de importador
+      especificados em `docs/13-perfis-importadores-xp.md`, ADRs 0018–0021 derivados dos dados

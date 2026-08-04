@@ -46,6 +46,11 @@ minúsculas → remove acentos → remove ruído de maquininha (`*`, `**`, códi
 'SHELL BOX 4412 *PARC 01/03'             → 'shell box'
 ```
 
+Casos reais do Visa Black XP que **têm** de colapsar para a mesma chave (fixtures de teste):
+`MP*MERCADOLIVRE` · `MP *MERCADOLIVRE` · `MERCADOLIVRE*MERCADOLIVRE` → `mercadolivre`;
+`DM          *TEMU` · `GNT*TEMU` · `TEMU.COM` → `temu`.
+Lista completa de prefixos de gateway observados nos dados em `docs/13-perfis-importadores-xp.md#25`.
+
 Essa normalização é a base de **tudo**: dedup, memória de merchant, recorrência e regras. É a
 função mais testada do projeto (dezenas de casos reais em `tests/Unit/Classification/MerchantNormalizerTest.php`).
 
@@ -174,9 +179,16 @@ Se a variação for negativa ou absurda (>50%), casa com `needs_review` e pergun
 
 ### 2.6 Sugestão automática (nunca criação automática)
 
-Detector (`PatternDetector`) roda no sweep noturno: 3+ transações, mesmo merchant/counterparty,
-intervalo regular (±5 dias), valor estável (±15%) → grava `recurrence_suggestions` e a UI pergunta
-**"Este gasto parece ser recorrente. Deseja marcar como recorrente?"**.
+Detector (`PatternDetector`) roda no sweep noturno: agrupa por **`(favorecido/merchant, cluster de
+valor ±15%)`** — ver **ADR-0021**, correção obrigatória comprovada com dados reais — e então avalia
+regularidade do intervalo. Mínimo de 3 ocorrências, ou 2 quando o intervalo é mensal (28–33 dias).
+Grava `recurrence_suggestions` e a UI pergunta **"Este gasto parece ser recorrente. Deseja marcar como
+recorrente?"**.
+
+> ⚠️ Agrupar **só** por favorecido erra o caso mais importante: a Escola Riacho Doce emite três boletos
+> no mesmo dia (R$ 236,73 + R$ 745,00 + R$ 1.419,00, repetidos todo mês). Sem o cluster de valor, os
+> intervalos viram `[0,0,…]`, a variação de valor explode para 2.738% e o detector descarta três
+> mensalidades escolares de valor alto. Detalhes em `docs/adr/0021-...md`.
 
 `signature` UNIQUE evita sugerir o mesmo padrão duas vezes. `dismissed` é permanente — o sistema
 nunca insiste. Requisito explícito do PO: **nunca criar recorrência automaticamente.**

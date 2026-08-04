@@ -90,6 +90,12 @@ flowchart TD
 
 ### 2.1 A validação cruzada é obrigatória (não opcional)
 
+> **Atualizado em 2026-08-04 (ADR-0019):** nem todo canal traz um total para conferir — a fatura CSV do
+> XP não tem total, mínimo nem vencimento, e uma fatura **aberta** não teria total conceitualmente.
+> A validação passou a ser uma estratégia por perfil: **cadeia de saldo** (mais forte, quando o extrato
+> traz saldo corrente), **soma × total** (quando existe) ou **conferência cruzada entre canais** (total
+> da fatura fechada vs. pagamento no extrato do mês seguinte). O que segue vale para o caso 2.
+
 Um parser de fatura que "quase acerta" é pior que nenhum parser: contamina 10 anos de histórico
 silenciosamente. Por isso:
 

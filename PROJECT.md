@@ -86,9 +86,9 @@ Status: 🟢 aprovada · 🟡 proposta (aguarda aprovação) · 🔵 aceita por 
 | ADR | Decisão | Status |
 |-----|---------|--------|
 | [0001](docs/adr/README.md#adr-0001) | Monólito modular com domínio isolado (Clean Architecture pragmática) | 🔵 |
-| [0002](docs/adr/README.md#adr-0002) | Fila de trabalhos em MySQL drenada por cron (sem daemon) | 🟡 **precisa aprovação** |
+| [0002](docs/adr/README.md#adr-0002) | Fila de trabalhos em MySQL drenada por cron (sem daemon) | 🟢 aprovada |
 | [0003](docs/adr/README.md#adr-0003) | Postura de privacidade e provedor de IA | 🟡 **precisa aprovação** |
-| [0004](docs/adr/README.md#adr-0004) | Compra parcelada como entidade de primeira classe (`card_purchases` + `card_installments`) | 🟡 **precisa aprovação** |
+| [0004](docs/adr/README.md#adr-0004) | Compra parcelada como entidade de primeira classe (`card_purchases` + `card_installments`) | 🟢 aprovada |
 | [0005](docs/adr/README.md#adr-0005) | Framework: Slim 4 + libs Composer enxutas | 🟡 **precisa aprovação** |
 | [0006](docs/adr/README.md#adr-0006) | Dinheiro sempre em centavos inteiros (`BIGINT`) | 🔵 |
 | [0007](docs/adr/README.md#adr-0007) | Dois eixos temporais: competência vs. caixa; cartão agrega em evento único de fatura | 🔵 |
@@ -170,10 +170,8 @@ Estas viram testes automatizados no MVP:
 
 ## 8. Pendências abertas (aguardando o PO)
 
-- [ ] Aprovar ADR-0002 (fila via cron)
-- [ ] Aprovar ADR-0003 (postura de privacidade / IA)
-- [ ] Aprovar ADR-0004 (modelo de parcelas)
-- [ ] Aprovar ADR-0005 (framework)
+- [ ] Aprovar ADR-0003 (postura de privacidade / IA) — em discussão
+- [ ] Aprovar ADR-0005 (framework) — em discussão
 - [ ] Confirmar dia de fechamento e vencimento do Visa Black XP (inferido: fecha ~17/18, vence dia 01)
 - [ ] Confirmar limite do cartão (para o cálculo de limite livre)
 - [ ] Liberar acesso de escrita ao repositório para esta sessão (push está retornando 403)
@@ -186,3 +184,5 @@ Estas viram testes automatizados no MVP:
       especificados em `docs/13-perfis-importadores-xp.md`, ADRs 0018–0021 derivados dos dados
 - [x] ADR-0020 aprovado: rendimento automático consolidado em 1 linha por mês, expansível ao clicar
 - [x] Pagamentos duplos de fatura = antecipação, confirmado pelo PO (ADR-0022, não é duplicidade)
+- [x] ADR-0002 aprovado: fila em MySQL + cron de 1 min
+- [x] ADR-0004 aprovado: `card_purchases` + `card_installments` como entidades próprias

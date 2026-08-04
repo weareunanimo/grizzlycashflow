@@ -30,7 +30,7 @@ ou hospedagem não toca regra de negócio; testes de domínio rodam em milissegu
 
 ---
 
-## ADR-0002 — Fila de trabalhos em MySQL drenada por cron 🟡 **precisa aprovação**
+## ADR-0002 — Fila de trabalhos em MySQL drenada por cron 🟢 **aprovada em 2026-08-04**
 
 **Contexto:** processar PDF com IA leva 5–40 s. Não pode acontecer no request. Hospedagem
 compartilhada **não permite daemon**.
@@ -51,8 +51,7 @@ não detalhe). Latência de até 1 min é aceitável para importar fatura; **nã
 captura por texto/voz — por isso esses caminhos têm processamento síncrono no caminho rápido
 (parser determinístico) e só caem na fila quando precisam de IA.
 
-**⚠️ Aprovar?** O único ponto de desconforto é a latência de até 1 minuto para PDF. A alternativa
-custaria um VPS.
+**Aprovado pelo PO em 2026-08-04.**
 
 ---
 
@@ -80,7 +79,7 @@ a qualquer momento com um flag**.
 
 ---
 
-## ADR-0004 — Compra parcelada como entidade de primeira classe 🟡 **precisa aprovação**
+## ADR-0004 — Compra parcelada como entidade de primeira classe 🟢 **aprovada em 2026-08-04**
 
 **Contexto:** o objetivo nº 1 é ver parcelas futuras. Como modelar?
 
@@ -98,7 +97,7 @@ sem intervenção do usuário. Invariante I10 protege isso em teste.
 **Consequências:** é a decisão mais estrutural do projeto. Se mudar depois, migração de dados grande.
 Por isso está aqui para aprovação.
 
-**⚠️ Aprovar?** Recomendo com convicção: é o que faz o objetivo central funcionar de verdade.
+**Aprovado pelo PO em 2026-08-04.**
 
 ---
 

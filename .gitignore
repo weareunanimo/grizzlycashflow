@@ -7,12 +7,36 @@
 /vendor/
 /node_modules/
 
-# Storage (fora do webroot, nunca versionado)
+# Laravel (convenção padrão: cada subpasta tem seu próprio .gitignore de conteúdo)
+/public/build
+/public/hot
+/public/storage
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
+/storage/*.key
+/storage/app/*
+!/storage/app/public
+!/storage/app/private
+!/storage/app/.gitignore
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/storage/app/private/*
+!/storage/app/private/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Uploads de usuário (fora do webroot, nunca versionado — ADR-0015)
 /storage/uploads/
-/storage/logs/
-/storage/cache/
-/storage/backups/
-/storage/tmp/
 
 # Dumps e segredos
 *.sql

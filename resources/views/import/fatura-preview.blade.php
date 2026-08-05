@@ -6,7 +6,7 @@
     <h1 class="text-2xl font-semibold mb-1">Prévia — fatura {{ \Illuminate\Support\Carbon::parse($referenceMonth . '-01')->translatedFormat('F/Y') }}</h1>
     <p class="text-sm text-[var(--text-dim)] mb-6">Confira antes de confirmar. Nada é gravado até você clicar em "Confirmar importação".</p>
 
-    <div class="grid grid-cols-3 gap-4 mb-6 max-w-lg">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 max-w-lg">
         <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4">
             <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-1">Compras novas</p>
             <p class="text-xl font-semibold text-[var(--in)]">{{ $newPurchases }}</p>
@@ -23,7 +23,7 @@
 
     <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden mb-6">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full min-w-[640px] text-sm">
                 <thead>
                     <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
                         <th class="px-4 py-3">Compra</th>
@@ -37,7 +37,7 @@
                     @foreach ($rows as $row)
                         <tr class="{{ $row['decision'] === 'ignorado' ? 'opacity-40' : '' }}">
                             <td class="px-4 py-[3px] whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['purchase_date'])->format('d/m/Y') }}</td>
-                            <td class="px-4 py-[3px]">{{ \Grizzly\Domain\Classification\MerchantDisplayName::forRawDescription($row['description']) }}</td>
+                            <td class="px-4 py-[3px] whitespace-nowrap">{{ \Grizzly\Domain\Classification\MerchantDisplayName::forRawDescription($row['description']) }}</td>
                             <td class="px-4 py-[3px] font-mono {{ $row['amount']->isNegative() ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
                                 {{ $row['amount']->formatBrl() }}
                             </td>

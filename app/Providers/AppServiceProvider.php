@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Carbon não segue o locale do Laravel sozinho — sem isso, translatedFormat()
+        // (nomes de mês em ->cards/show, ->closing/index etc.) sai sempre em inglês.
+        Carbon::setLocale(config('app.locale'));
+
         View::composer('layouts.app', function ($view): void {
             $count = 0;
 

@@ -22,7 +22,10 @@
     </div>
 
     <section class="mb-10 pt-6">
-        <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider mb-4">Contas</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider">Contas</h2>
+            <a href="{{ route('accounts.create') }}" class="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity">+ Adicionar</a>
+        </div>
         <div class="space-y-4">
             @foreach ($accounts as $account)
                 <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden">
@@ -57,7 +60,10 @@
     </section>
 
     <section class="pt-6">
-        <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider mb-4">Cartões de crédito</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider">Cartões de crédito</h2>
+            <a href="{{ route('accounts.create') }}" class="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity">+ Adicionar</a>
+        </div>
         <div class="space-y-4">
             @forelse ($creditCards as $card)
                 <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden">

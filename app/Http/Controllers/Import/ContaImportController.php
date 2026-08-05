@@ -125,6 +125,8 @@ final class ContaImportController extends Controller
         ]);
 
         $rules = $this->activeRules($userId);
+        $rendimentosCategoryId = $this->categoryIdByName($userId, 'Rendimentos');
+        $transferCategoryId = $this->categoryIdByName($userId, 'Transferências');
         $created = 0;
         $skipped = 0;
 
@@ -155,6 +157,19 @@ final class ContaImportController extends Controller
 
             $categoryId = RuleMatcher::match($row['description'], $rules);
             $classification = $this->classify($row['description']);
+            $categorySource = $categoryId !== null ? 'rule' : null;
+
+            // "Rendimento automático" e transferências (pagamento de fatura) já têm
+            // categoria óbvia por natureza — não faz sentido pedir revisão manual.
+            if (str_starts_with(mb_strtolower($row['description']), 'rendimento automático') && $rendimentosCategoryId !== null) {
+                $categoryId = $rendimentosCategoryId;
+                $categorySource = 'seed';
+            } elseif ($classification['is_transfer'] && $transferCategoryId !== null) {
+                $categoryId = $transferCategoryId;
+                $categorySource = 'seed';
+            }
+
+            $needsReview = $categoryId === null && !$classification['is_transfer'];
 
             $importRowId = DB::table('import_rows')->insertGetId([
                 'user_id' => $userId,
@@ -190,9 +205,9 @@ final class ContaImportController extends Controller
                 'source_document_id' => $documentId,
                 'import_row_id' => $importRowId,
                 'category_confidence' => $categoryId !== null ? 0.700 : null,
-                'category_source' => $categoryId !== null ? 'rule' : null,
-                'needs_review' => $categoryId === null,
-                'review_reason' => $categoryId === null ? 'low_confidence' : null,
+                'category_source' => $categorySource,
+                'needs_review' => $needsReview,
+                'review_reason' => $needsReview ? 'low_confidence' : null,
                 'fingerprint' => $row['fingerprint'],
                 'fingerprint_loose' => $row['fingerprint_loose'],
                 'created_at' => now(),
@@ -268,6 +283,15 @@ final class ContaImportController extends Controller
             str_contains($d, 'rendimento') => ['payment_method' => 'other', 'is_transfer' => false],
             default => ['payment_method' => 'other', 'is_transfer' => false],
         };
+    }
+
+    private function categoryIdByName(int $userId, string $name): ?int
+    {
+        return DB::table('categories')
+            ->where('user_id', $userId)
+            ->where('name', $name)
+            ->whereNull('parent_id')
+            ->value('id');
     }
 
     /** @return list<array{conditions:array,actions:array}> */

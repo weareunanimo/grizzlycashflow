@@ -15,9 +15,16 @@
                 <span class="font-semibold tracking-tight">Grizzly Cashflow</span>
             </a>
 
-            <nav class="hidden sm:flex items-center gap-6 text-sm text-[var(--text-dim)]">
+            <nav class="hidden md:flex items-center gap-6 text-sm text-[var(--text-dim)]">
                 <a href="{{ route('import.conta.show') }}" class="hover:text-[var(--text)] transition-colors">Importar extrato</a>
                 <a href="{{ route('import.fatura.show') }}" class="hover:text-[var(--text)] transition-colors">Importar fatura</a>
+                <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
+                <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
+                    Revisar
+                    @if (($pendingReviewCount ?? 0) > 0)
+                        <span class="ml-1 inline-flex items-center justify-center rounded-full bg-[var(--warn)]/20 text-[var(--warn)] text-xs px-1.5 py-0.5">{{ $pendingReviewCount }}</span>
+                    @endif
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="hover:text-[var(--text)] transition-colors">Sair</button>
@@ -25,7 +32,7 @@
             </nav>
 
             <button type="button" aria-label="Menu" aria-expanded="false" id="mobile-nav-toggle"
-                class="sm:hidden p-2 -mr-2 text-[var(--text)]"
+                class="md:hidden p-2 -mr-2 text-[var(--text)]"
                 onclick="document.getElementById('mobile-nav').classList.toggle('hidden'); this.setAttribute('aria-expanded', document.getElementById('mobile-nav').classList.contains('hidden') ? 'false' : 'true')">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -33,9 +40,16 @@
             </button>
         </div>
 
-        <nav id="mobile-nav" class="hidden sm:hidden border-t border-[var(--border)] px-4 py-3 flex flex-col gap-3 text-sm text-[var(--text-dim)]">
+        <nav id="mobile-nav" class="hidden md:hidden border-t border-[var(--border)] px-4 py-3 flex flex-col gap-3 text-sm text-[var(--text-dim)]">
             <a href="{{ route('import.conta.show') }}" class="hover:text-[var(--text)] transition-colors">Importar extrato</a>
             <a href="{{ route('import.fatura.show') }}" class="hover:text-[var(--text)] transition-colors">Importar fatura</a>
+            <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
+            <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
+                Revisar
+                @if (($pendingReviewCount ?? 0) > 0)
+                    <span class="ml-1 inline-flex items-center justify-center rounded-full bg-[var(--warn)]/20 text-[var(--warn)] text-xs px-1.5 py-0.5">{{ $pendingReviewCount }}</span>
+                @endif
+            </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="hover:text-[var(--text)] transition-colors">Sair</button>

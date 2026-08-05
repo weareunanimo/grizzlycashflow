@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ClosingController;
 use App\Http\Controllers\CreditCardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Import\ContaImportController;
 use App\Http\Controllers\Import\FaturaImportController;
+use App\Http\Controllers\NewAccountController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'));
@@ -17,8 +20,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::get('/accounts/new', [NewAccountController::class, 'create'])->name('accounts.create');
+    Route::post('/accounts', [NewAccountController::class, 'store'])->name('accounts.store');
     Route::get('/accounts/{id}', [AccountController::class, 'show'])->name('accounts.show');
     Route::get('/cards/{id}', [CreditCardController::class, 'show'])->name('cards.show');
+
+    Route::get('/review', [ReviewController::class, 'index'])->name('review.index');
+    Route::post('/review/{id}', [ReviewController::class, 'store'])->name('review.store');
+
+    Route::get('/fechamento', [ClosingController::class, 'index'])->name('closing.index');
 
     Route::prefix('import/conta')->name('import.conta.')->group(function (): void {
         Route::get('/', [ContaImportController::class, 'show'])->name('show');

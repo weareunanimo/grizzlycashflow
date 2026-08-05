@@ -19,6 +19,7 @@
                 <a href="{{ route('banks.index') }}" class="hover:text-[var(--text)] transition-colors">Bancos</a>
                 <a href="{{ route('cards.index') }}" class="hover:text-[var(--text)] transition-colors">Cartões</a>
                 <a href="{{ route('import.index') }}" class="hover:text-[var(--text)] transition-colors">Importar</a>
+                <a href="{{ route('categories.index') }}" class="hover:text-[var(--text)] transition-colors">Categorias</a>
                 <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
                 <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
                     Revisar
@@ -45,6 +46,7 @@
             <a href="{{ route('banks.index') }}" class="hover:text-[var(--text)] transition-colors">Bancos</a>
             <a href="{{ route('cards.index') }}" class="hover:text-[var(--text)] transition-colors">Cartões</a>
             <a href="{{ route('import.index') }}" class="hover:text-[var(--text)] transition-colors">Importar</a>
+            <a href="{{ route('categories.index') }}" class="hover:text-[var(--text)] transition-colors">Categorias</a>
             <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
             <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
                 Revisar

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Support\CategoryTree;
 use App\Support\RendimentoCategorizer;
 use App\Support\ReviewQueue;
 use Grizzly\Application\Classification\RuleMatcher;
@@ -463,28 +464,13 @@ final class ReviewController extends Controller
         ]);
     }
 
-    /** @return list<array{id:int,label:string}> */
+    /**
+     * Mesma ordem da tela de Categorias — o dropdown não pode contradizer a lista.
+     *
+     * @return list<array{id:int,label:string}>
+     */
     private function categoryOptions(int $userId): array
     {
-        $categories = DB::table('categories')
-            ->where('user_id', $userId)
-            ->whereNull('archived_at')
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get(['id', 'parent_id', 'name']);
-
-        $byParent = $categories->groupBy('parent_id');
-        $options = [];
-
-        $build = function ($parentId, int $depth) use (&$build, $byParent, &$options): void {
-            foreach ($byParent->get($parentId, collect()) as $category) {
-                // (int) para a sugestão pré-selecionada casar no === da view.
-                $options[] = ['id' => (int) $category->id, 'label' => str_repeat('— ', $depth).$category->name];
-                $build($category->id, $depth + 1);
-            }
-        };
-        $build(null, 0);
-
-        return $options;
+        return CategoryTree::options($userId);
     }
 }

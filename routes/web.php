@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BankController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClosingController;
 use App\Http\Controllers\CreditCardController;
 use App\Http\Controllers\DashboardController;
@@ -30,6 +31,10 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/accounts/new', [NewAccountController::class, 'create'])->name('accounts.create');
     Route::post('/accounts', [NewAccountController::class, 'store'])->name('accounts.store');
+
+    Route::get('/categorias', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categorias', [CategoryController::class, 'store'])->name('categories.store');
+    Route::patch('/categorias/{id}', [CategoryController::class, 'update'])->name('categories.update');
 
     Route::get('/review', [ReviewController::class, 'index'])->name('review.index');
     Route::post('/review/{kind}/{id}', [ReviewController::class, 'store'])->name('review.store');

@@ -9,7 +9,7 @@
         @foreach ([
             ['label' => 'Contas', 'value' => $accounts->count(), 'route' => route('banks.index')],
             ['label' => 'Cartões', 'value' => $creditCards->count() + $benefitCards->count(), 'route' => route('cards.index')],
-            ['label' => 'Categorias', 'value' => $categoryCount, 'route' => route('closing.index')],
+            ['label' => 'Categorias', 'value' => $categoryCount, 'route' => route('categories.index')],
             ['label' => 'Regras de categorização', 'value' => $ruleCount, 'route' => route('review.index')],
         ] as $card)
             <a href="{{ $card['route'] }}"

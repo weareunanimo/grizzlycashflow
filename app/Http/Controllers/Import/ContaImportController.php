@@ -25,18 +25,6 @@ use Illuminate\View\View;
  */
 final class ContaImportController extends Controller
 {
-    public function show(): View
-    {
-        $userId = Auth::id();
-
-        $accounts = DB::table('accounts')
-            ->where('user_id', $userId)
-            ->where('type', '!=', 'credit_card')
-            ->whereNull('archived_at')
-            ->get();
-
-        return view('import.conta-upload', ['accounts' => $accounts]);
-    }
 
     public function preview(Request $request): View|RedirectResponse
     {
@@ -79,14 +67,14 @@ final class ContaImportController extends Controller
         $pending = $request->session()->get('import.conta');
 
         if (!$pending) {
-            return redirect()->route('import.conta.show')->withErrors(['file' => 'Sessão de importação expirou, envie o arquivo de novo.']);
+            return redirect()->route('import.index')->withErrors(['file' => 'Sessão de importação expirou, envie o arquivo de novo.']);
         }
 
         $contents = Storage::get($pending['path']);
         $account = DB::table('accounts')->where('id', $pending['account_id'])->where('user_id', $userId)->first();
 
         if (!$account || $contents === null) {
-            return redirect()->route('import.conta.show')->withErrors(['file' => 'Não achei mais o arquivo enviado, envie de novo.']);
+            return redirect()->route('import.index')->withErrors(['file' => 'Não achei mais o arquivo enviado, envie de novo.']);
         }
 
         [$rows] = $this->parseAndAnnotate($contents, (int) $account->id, $userId);

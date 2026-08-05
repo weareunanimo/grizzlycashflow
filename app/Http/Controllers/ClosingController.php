@@ -19,6 +19,7 @@ final class ClosingController extends Controller
     public function index(): View
     {
         $userId = Auth::id();
+        $currentMonth = now()->format('Y-m');
 
         $bank = DB::table('transactions')
             ->leftJoin('categories', 'categories.id', '=', 'transactions.category_id')
@@ -26,6 +27,7 @@ final class ClosingController extends Controller
             ->where('transactions.direction', 'out')
             ->where('transactions.excluded_from_analytics', false)
             ->whereNull('transactions.deleted_at')
+            ->where('transactions.occurred_on', '<=', $currentMonth . '-31')
             ->selectRaw('substr(transactions.occurred_on, 1, 7) as month')
             ->addSelect('transactions.category_id')
             ->addSelect(DB::raw("COALESCE(categories.name, 'Sem categoria') as category_name"))
@@ -33,10 +35,14 @@ final class ClosingController extends Controller
             ->groupBy('month', 'transactions.category_id', 'categories.name')
             ->get();
 
+        // Só até o mês atual — meses futuros são projeção e já vivem em
+        // "Projeção de faturas" dentro do cartão, não no fechamento (que é o
+        // que já fechou/está fechando).
         $card = DB::table('card_installments')
             ->join('card_purchases', 'card_purchases.id', '=', 'card_installments.purchase_id')
             ->leftJoin('categories', 'categories.id', '=', 'card_purchases.category_id')
             ->where('card_installments.user_id', $userId)
+            ->where('card_installments.reference_month', '<=', $currentMonth . '-31')
             ->selectRaw('substr(card_installments.reference_month, 1, 7) as month')
             ->addSelect('card_purchases.category_id')
             ->addSelect(DB::raw("COALESCE(categories.name, 'Sem categoria') as category_name"))

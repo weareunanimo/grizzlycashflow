@@ -16,8 +16,9 @@
             </a>
 
             <nav class="hidden md:flex items-center gap-6 text-sm text-[var(--text-dim)]">
-                <a href="{{ route('import.conta.show') }}" class="hover:text-[var(--text)] transition-colors">Importar extrato</a>
-                <a href="{{ route('import.fatura.show') }}" class="hover:text-[var(--text)] transition-colors">Importar fatura</a>
+                <a href="{{ route('banks.index') }}" class="hover:text-[var(--text)] transition-colors">Bancos</a>
+                <a href="{{ route('cards.index') }}" class="hover:text-[var(--text)] transition-colors">Cartões</a>
+                <a href="{{ route('import.index') }}" class="hover:text-[var(--text)] transition-colors">Importar</a>
                 <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
                 <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
                     Revisar
@@ -41,8 +42,9 @@
         </div>
 
         <nav id="mobile-nav" class="hidden md:hidden border-t border-[var(--border)] px-4 py-3 flex flex-col gap-3 text-sm text-[var(--text-dim)]">
-            <a href="{{ route('import.conta.show') }}" class="hover:text-[var(--text)] transition-colors">Importar extrato</a>
-            <a href="{{ route('import.fatura.show') }}" class="hover:text-[var(--text)] transition-colors">Importar fatura</a>
+            <a href="{{ route('banks.index') }}" class="hover:text-[var(--text)] transition-colors">Bancos</a>
+            <a href="{{ route('cards.index') }}" class="hover:text-[var(--text)] transition-colors">Cartões</a>
+            <a href="{{ route('import.index') }}" class="hover:text-[var(--text)] transition-colors">Importar</a>
             <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
             <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
                 Revisar

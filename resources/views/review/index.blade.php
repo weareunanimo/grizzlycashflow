@@ -4,28 +4,41 @@
 
 @section('content')
     <h1 class="text-2xl font-semibold mb-1">Revisar categorias</h1>
-    <p class="text-sm text-[var(--text-dim)] mb-8">
+    <p class="text-sm text-[var(--text-dim)] mb-6">
         Nenhuma regra reconheceu esses lançamentos com confiança. Confirme a sugestão ou escolha outra categoria —
         a decisão vale para todo lançamento igual pendente e vira uma regra para as próximas importações.
     </p>
 
+    <div class="inline-flex gap-[1px] mb-6 text-sm bg-[var(--surface-1)] border border-[var(--border)] rounded-lg p-1">
+        @foreach (['all' => 'Todos', 'bank' => 'Bancos', 'card' => 'Cartões'] as $key => $label)
+            <a href="{{ route('review.index', ['type' => $key]) }}"
+                class="px-4 py-2 rounded-md transition-colors {{ $type === $key ? 'bg-[var(--surface-2)] text-[var(--text)] font-medium' : 'text-[var(--text-dim)] hover:text-[var(--text)]' }}">
+                {{ $label }}
+            </a>
+        @endforeach
+    </div>
+
     <div class="space-y-3">
-        @forelse ($pending as $tx)
-            <form method="POST" action="{{ route('review.store', $tx->id) }}"
+        @forelse ($pending as $row)
+            @php($key = $row->kind . '-' . $row->id)
+            <form method="POST" action="{{ route('review.store', ['kind' => $row->kind, 'id' => $row->id, 'type' => $type]) }}"
                 class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
                 @csrf
                 <div class="flex-1 min-w-0">
-                    <p class="font-medium truncate">{{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($tx->description) }}</p>
+                    <p class="font-medium truncate">
+                        {{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($row->description) }}
+                        <span class="text-xs text-[var(--text-mute)] font-normal">{{ $row->kind === 'bank' ? '· banco' : '· cartão' }}</span>
+                    </p>
                     <p class="text-xs text-[var(--text-dim)]">
-                        {{ \Illuminate\Support\Carbon::parse($tx->occurred_on)->format('d/m/Y') }} ·
-                        <span class="font-mono {{ $tx->direction === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
-                            {{ $tx->direction === 'out' ? '-' : '' }}R$ {{ number_format($tx->amount_cents / 100, 2, ',', '.') }}
+                        {{ \Illuminate\Support\Carbon::parse($row->date)->format('d/m/Y') }} ·
+                        <span class="font-mono {{ $row->amount_cents < 0 ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
+                            R$ {{ number_format($row->amount_cents / 100, 2, ',', '.') }}
                         </span>
                     </p>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    @if ($suggestions[$tx->id] ?? null)
+                    @if ($suggestions[$key] ?? null)
                         <span class="text-xs text-[var(--text-mute)] whitespace-nowrap">Sugestão aplicada, troque se quiser:</span>
                     @else
                         <span class="text-xs text-[var(--text-mute)] whitespace-nowrap">Outra categoria:</span>
@@ -33,9 +46,9 @@
                     <div class="relative">
                         <select name="category_id" required
                             class="appearance-none rounded-md bg-[var(--surface-2)] border border-[var(--border)] pl-3 pr-9 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
-                            <option value="" disabled {{ !($suggestions[$tx->id] ?? null) ? 'selected' : '' }}>Selecione…</option>
+                            <option value="" disabled {{ !($suggestions[$key] ?? null) ? 'selected' : '' }}>Selecione…</option>
                             @foreach ($categories as $option)
-                                <option value="{{ $option['id'] }}" {{ ($suggestions[$tx->id] ?? null) === $option['id'] ? 'selected' : '' }}>
+                                <option value="{{ $option['id'] }}" {{ ($suggestions[$key] ?? null) === $option['id'] ? 'selected' : '' }}>
                                     {{ $option['label'] }}
                                 </option>
                             @endforeach

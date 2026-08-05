@@ -28,18 +28,6 @@ use Illuminate\View\View;
  */
 final class FaturaImportController extends Controller
 {
-    public function show(): View
-    {
-        $userId = Auth::id();
-
-        $cards = DB::table('credit_cards')
-            ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
-            ->where('credit_cards.user_id', $userId)
-            ->select('credit_cards.id', 'accounts.name')
-            ->get();
-
-        return view('import.fatura-upload', ['cards' => $cards, 'defaultMonth' => now()->format('Y-m')]);
-    }
 
     public function preview(Request $request): View|RedirectResponse
     {
@@ -85,14 +73,14 @@ final class FaturaImportController extends Controller
         $pending = $request->session()->get('import.fatura');
 
         if (!$pending) {
-            return redirect()->route('import.fatura.show')->withErrors(['file' => 'Sessão de importação expirou, envie o arquivo de novo.']);
+            return redirect()->route('import.index')->withErrors(['file' => 'Sessão de importação expirou, envie o arquivo de novo.']);
         }
 
         $contents = Storage::get($pending['path']);
         $card = DB::table('credit_cards')->where('id', $pending['credit_card_id'])->where('user_id', $userId)->first();
 
         if (!$card || $contents === null) {
-            return redirect()->route('import.fatura.show')->withErrors(['file' => 'Não achei mais o arquivo enviado, envie de novo.']);
+            return redirect()->route('import.index')->withErrors(['file' => 'Não achei mais o arquivo enviado, envie de novo.']);
         }
 
         $referenceMonth = $pending['reference_month'];
@@ -169,6 +157,7 @@ final class FaturaImportController extends Controller
                 'is_installment_plan' => $row['installment_total'] > 1,
                 'group_key' => $row['group_key'],
                 'detection_confidence' => 1.000,
+                'needs_review' => $categoryId === null,
                 'source' => 'csv',
                 'source_document_id' => $documentId,
                 'created_at' => now(),

@@ -12,6 +12,28 @@ use Illuminate\View\View;
 
 final class CreditCardController extends Controller
 {
+    public function index(): View
+    {
+        $userId = Auth::id();
+
+        $cards = DB::table('credit_cards')
+            ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
+            ->where('credit_cards.user_id', $userId)
+            ->select('credit_cards.*', 'accounts.name as account_name')
+            ->get()
+            ->map(function ($card) use ($userId) {
+                $card->open_total_cents = (int) DB::table('card_installments')
+                    ->where('credit_card_id', $card->id)
+                    ->where('user_id', $userId)
+                    ->whereIn('status', ['projected', 'billed'])
+                    ->sum('amount_cents');
+
+                return $card;
+            });
+
+        return view('cards.index', ['cards' => $cards]);
+    }
+
     public function show(int $id, Request $request): View
     {
         $userId = Auth::id();

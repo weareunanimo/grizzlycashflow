@@ -62,7 +62,7 @@
                     @empty
                         <tr>
                             <td colspan="4" class="px-4 py-8 text-center text-[var(--text-dim)]">
-                                Nenhum lançamento ainda. <a href="{{ route('import.conta.show') }}" class="text-[var(--accent)] underline">Importar extrato</a>
+                                Nenhum lançamento ainda. <a href="{{ route('import.index') }}" class="text-[var(--accent)] underline">Importar extrato</a>
                             </td>
                         </tr>
                     @endforelse

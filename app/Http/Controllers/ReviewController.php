@@ -6,92 +6,151 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
- * Fila de revisão manual (transactions.needs_review = true): nenhuma regra
- * reconheceu a categoria com confiança. Cada confirmação aqui vira uma regra
- * nova (aprendizado incremental) e é replicada em todo lançamento igual que
- * também esteja pendente — não faz sentido o usuário revisar a mesma
- * contraparte várias vezes.
+ * Fila de revisão manual (needs_review = true em transactions ou card_purchases):
+ * nenhuma regra reconheceu a categoria com confiança. Cada confirmação vira uma
+ * regra nova (aprendizado incremental) e é replicada em todo lançamento igual
+ * que também esteja pendente — não faz sentido revisar a mesma contraparte
+ * várias vezes. Cobre banco e cartão, com filtro para ver só um dos dois.
  */
 final class ReviewController extends Controller
 {
-    public function index(): View
+    private const PER_PAGE = 20;
+
+    /** Tamanho de `rules.name` — regras aprendidas truncam o nome pra caber. */
+    private const RULE_NAME_MAX = 140;
+
+    public function index(Request $request): View
     {
         $userId = Auth::id();
+        $type = in_array($request->query('type'), ['bank', 'card'], true) ? $request->query('type') : 'all';
 
-        $pending = DB::table('transactions')
-            ->leftJoin('categories', 'categories.id', '=', 'transactions.category_id')
-            ->where('transactions.user_id', $userId)
-            ->where('transactions.needs_review', true)
-            ->whereNull('transactions.deleted_at')
-            ->orderByDesc('transactions.occurred_on')
-            ->select('transactions.*', 'categories.name as category_name')
-            ->paginate(20);
+        $rows = collect();
+
+        if ($type !== 'card') {
+            $rows = $rows->concat($this->pendingTransactions($userId));
+        }
+
+        if ($type !== 'bank') {
+            $rows = $rows->concat($this->pendingPurchases($userId));
+        }
+
+        $rows = $rows->sortByDesc('sort_key')->values();
+
+        $page = max(1, (int) $request->query('page', 1));
+        $slice = $rows->forPage($page, self::PER_PAGE)->values();
+
+        $pending = new LengthAwarePaginator(
+            $slice,
+            $rows->count(),
+            self::PER_PAGE,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()],
+        );
 
         $suggestions = [];
-        foreach ($pending as $tx) {
-            $suggestions[$tx->id] = $this->suggestCategory($userId, $tx->description, $tx->id);
+        foreach ($pending as $row) {
+            $suggestions[$row->kind . '-' . $row->id] = $this->suggestCategory($userId, $row->kind, $row->description, $row->id);
         }
 
         return view('review.index', [
             'pending' => $pending,
             'categories' => $this->categoryOptions($userId),
             'suggestions' => $suggestions,
+            'type' => $type,
         ]);
     }
 
-    public function store(Request $request, int $id): RedirectResponse
+    public function store(Request $request, string $kind, int $id): RedirectResponse
     {
+        if (!in_array($kind, ['bank', 'card'], true)) {
+            abort(404);
+        }
+
         $userId = Auth::id();
         $validated = $request->validate(['category_id' => ['required', 'integer']]);
         $categoryId = (int) $validated['category_id'];
 
-        $tx = DB::table('transactions')->where('id', $id)->where('user_id', $userId)->first();
+        $table = $kind === 'bank' ? 'transactions' : 'card_purchases';
+        $row = DB::table($table)->where('id', $id)->where('user_id', $userId)->first();
 
-        if (!$tx) {
+        if (!$row) {
             abort(404);
         }
 
-        DB::table('transactions')->where('id', $id)->update([
-            'category_id' => $categoryId,
-            'category_source' => 'user',
-            'category_confidence' => 1.000,
-            'needs_review' => false,
-            'review_reason' => null,
-            'updated_at' => now(),
-        ]);
+        // card_purchases não tem category_source/category_confidence (só transactions tem).
+        $fields = ['category_id' => $categoryId, 'needs_review' => false, 'updated_at' => now()];
+        if ($kind === 'bank') {
+            $fields['category_source'] = 'user';
+            $fields['category_confidence'] = 1.000;
+        }
 
-        $replicated = DB::table('transactions')
+        DB::table($table)->where('id', $id)->update($fields);
+
+        $replicated = DB::table($table)
             ->where('user_id', $userId)
             ->where('id', '!=', $id)
             ->where('needs_review', true)
             ->whereNull('deleted_at')
-            ->whereRaw('LOWER(description) = LOWER(?)', [$tx->description])
-            ->update([
-                'category_id' => $categoryId,
-                'category_source' => 'user',
-                'category_confidence' => 1.000,
-                'needs_review' => false,
-                'review_reason' => null,
-                'updated_at' => now(),
-            ]);
+            ->whereRaw('LOWER(description) = LOWER(?)', [$row->description])
+            ->update($fields);
 
-        $this->learnRule($userId, $tx->description, $categoryId);
+        $this->learnRule($userId, $row->description, $categoryId);
 
         $status = $replicated > 0
             ? "Categoria aplicada e replicada em mais {$replicated} lançamento(s) igual(is)."
             : 'Categoria aplicada.';
 
-        return redirect()->route('review.index')->with('status', $status);
+        return redirect()->route('review.index', $request->query())->with('status', $status);
     }
 
-    private function suggestCategory(int $userId, string $description, int $excludeId): ?int
+    private function pendingTransactions(int $userId): Collection
     {
-        $row = DB::table('transactions')
+        return DB::table('transactions')
+            ->where('user_id', $userId)
+            ->where('needs_review', true)
+            ->whereNull('deleted_at')
+            ->orderByDesc('occurred_on')
+            ->get()
+            ->map(fn ($tx) => (object) [
+                'kind' => 'bank',
+                'id' => $tx->id,
+                'date' => $tx->occurred_on,
+                'description' => $tx->description,
+                'amount_cents' => $tx->direction === 'out' ? -$tx->amount_cents : $tx->amount_cents,
+                'sort_key' => $tx->occurred_on . '-' . str_pad((string) $tx->id, 12, '0', STR_PAD_LEFT),
+            ]);
+    }
+
+    private function pendingPurchases(int $userId): Collection
+    {
+        return DB::table('card_purchases')
+            ->where('user_id', $userId)
+            ->where('needs_review', true)
+            ->whereNull('deleted_at')
+            ->orderByDesc('purchase_date')
+            ->get()
+            ->map(fn ($p) => (object) [
+                'kind' => 'card',
+                'id' => $p->id,
+                'date' => $p->purchase_date,
+                'description' => $p->description,
+                'amount_cents' => $p->installment_amount_cents,
+                'sort_key' => $p->purchase_date . '-' . str_pad((string) $p->id, 12, '0', STR_PAD_LEFT),
+            ]);
+    }
+
+    private function suggestCategory(int $userId, string $kind, string $description, int $excludeId): ?int
+    {
+        $table = $kind === 'bank' ? 'transactions' : 'card_purchases';
+
+        $row = DB::table($table)
             ->where('user_id', $userId)
             ->where('id', '!=', $excludeId)
             ->whereNotNull('category_id')
@@ -107,8 +166,8 @@ final class ReviewController extends Controller
 
     /**
      * Vira uma regra nova de prioridade alta (aprendizado a partir da correção
-     * do usuário) — assim, na próxima importação, esse mesmo estabelecimento
-     * já entra categorizado sozinho.
+     * do usuário) — assim, na próxima importação (banco ou cartão), esse mesmo
+     * estabelecimento já entra categorizado sozinho.
      */
     private function learnRule(int $userId, string $description, int $categoryId): void
     {
@@ -139,7 +198,7 @@ final class ReviewController extends Controller
 
         DB::table('rules')->insert([
             'user_id' => $userId,
-            'name' => 'Aprendido: ' . $keyword,
+            'name' => mb_substr('Aprendido: ' . $keyword, 0, self::RULE_NAME_MAX),
             'priority' => 1,
             'is_active' => true,
             'stop_on_match' => true,

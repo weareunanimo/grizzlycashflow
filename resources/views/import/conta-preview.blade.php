@@ -66,6 +66,6 @@
             class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold px-5 py-2 text-sm hover:opacity-90 transition-opacity">
             Confirmar importação
         </button>
-        <a href="{{ route('import.conta.show') }}" class="ml-3 text-sm text-[var(--text-dim)] hover:text-[var(--text)]">Cancelar</a>
+        <a href="{{ route('import.index') }}" class="ml-3 text-sm text-[var(--text-dim)] hover:text-[var(--text)]">Cancelar</a>
     </form>
 @endsection

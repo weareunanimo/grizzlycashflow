@@ -39,7 +39,12 @@
                                     {{ $purchase->purchase_date ? \Illuminate\Support\Carbon::parse($purchase->purchase_date)->format('d/m/Y') : '—' }}
                                 </td>
                                 <td class="px-4 sm:px-5 py-2.5 whitespace-nowrap">{{ $purchase->display_name }}</td>
-                                <td class="px-4 sm:px-5 py-2.5 text-[var(--text-dim)]">{{ $purchase->category_name ?? '—' }}</td>
+                                <td class="px-4 sm:px-5 py-2.5 text-[var(--text-dim)]">
+                                    {{ $purchase->category_name ?? '—' }}
+                                    @if ($purchase->needs_review)
+                                        <span class="ml-1 text-xs text-[var(--warn)]" title="Nenhuma regra reconheceu essa compra com confiança — categoria ainda não definida.">revisar</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 sm:px-5 py-2.5 text-[var(--text-dim)]">
                                     {{ $purchase->current_number ?? 1 }}/{{ $purchase->installments_total }}x
                                 </td>
@@ -50,7 +55,7 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="px-4 py-8 text-center text-[var(--text-dim)]">
-                                    Nenhuma compra ainda. <a href="{{ route('import.fatura.show') }}" class="text-[var(--accent)] underline">Importar fatura</a>
+                                    Nenhuma compra ainda. <a href="{{ route('import.index') }}" class="text-[var(--accent)] underline">Importar fatura</a>
                                 </td>
                             </tr>
                         @endforelse
@@ -65,7 +70,7 @@
         <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden">
             @if ($projection->isEmpty())
                 <p class="px-5 py-6 text-sm text-[var(--text-dim)]">
-                    Nenhuma parcela projetada ainda. <a href="{{ route('import.fatura.show') }}" class="text-[var(--accent)] underline">Importar fatura</a>
+                    Nenhuma parcela projetada ainda. <a href="{{ route('import.index') }}" class="text-[var(--accent)] underline">Importar fatura</a>
                 </p>
             @else
                 <table class="w-full min-w-[640px] text-sm">

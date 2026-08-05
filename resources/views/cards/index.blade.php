@@ -41,13 +41,34 @@
                         </p>
                     @endif
                 </div>
-                <form method="POST" action="{{ route('cards.destroy', $selected->key) }}"
-                    onsubmit="return confirm('Tem certeza que deseja excluir o cartão \'{{ $selected->account_name }}\'? Todos os dados relacionados a ele serão apagados permanentemente. Essa ação não pode ser desfeita.');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-sm text-[var(--critical)] hover:opacity-80 transition-opacity">Excluir cartão</button>
-                </form>
+                <div class="flex items-center gap-4 shrink-0">
+                    <details class="relative">
+                        <summary class="list-none cursor-pointer text-sm text-[var(--accent)] hover:opacity-80 transition-opacity">Renomear</summary>
+                        <form method="POST" action="{{ route('cards.update', $selected->key) }}"
+                            class="absolute right-0 z-10 mt-2 w-72 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2">
+                            @csrf
+                            @method('PATCH')
+                            <label for="card-name" class="text-xs text-[var(--text-dim)]">Nome do cartão</label>
+                            <input type="text" id="card-name" name="name" value="{{ $selected->account_name }}" required maxlength="120"
+                                class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+                            <button type="submit"
+                                class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold py-2 text-sm hover:opacity-90 transition-opacity">
+                                Salvar
+                            </button>
+                        </form>
+                    </details>
+                    <form method="POST" action="{{ route('cards.destroy', $selected->key) }}"
+                        onsubmit="return confirm('Tem certeza que deseja excluir o cartão \'{{ $selected->account_name }}\'? Todos os dados relacionados a ele serão apagados permanentemente. Essa ação não pode ser desfeita.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-sm text-[var(--critical)] hover:opacity-80 transition-opacity">Excluir cartão</button>
+                    </form>
+                </div>
             </div>
+
+            @error('name')
+                <p class="text-sm text-[var(--critical)] mb-4">{{ $message }}</p>
+            @enderror
 
             @if ($selected->card_type === 'voucher')
                 <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden mb-4">
@@ -68,7 +89,7 @@
                                         <td class="px-4 sm:px-5 py-[3px] whitespace-nowrap">
                                             {{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($tx->description) }}
                                             @if ($tx->needs_review)
-                                                <span class="ml-1 text-xs text-[var(--warn)]" title="Nenhuma regra reconheceu esse lançamento com confiança — categoria ainda não definida.">revisar</span>
+                                                @include('partials.review-dot')
                                             @endif
                                         </td>
                                         <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">{{ $tx->category_name ?? '—' }}</td>
@@ -124,7 +145,7 @@
                                         <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">
                                             {{ $purchase->category_name ?? '—' }}
                                             @if ($purchase->needs_review)
-                                                <span class="ml-1 text-xs text-[var(--warn)]" title="Nenhuma regra reconheceu essa compra com confiança — categoria ainda não definida.">revisar</span>
+                                                @include('partials.review-dot')
                                             @endif
                                         </td>
                                         <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">

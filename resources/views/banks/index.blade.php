@@ -31,13 +31,34 @@
                         <span class="font-mono text-[var(--out)] ml-3">-R$ {{ number_format($selected->total_out_cents / 100, 2, ',', '.') }}</span>
                     </p>
                 </div>
-                <form method="POST" action="{{ route('banks.destroy', $selected->id) }}"
-                    onsubmit="return confirm('Tem certeza que deseja excluir a conta \'{{ $selected->name }}\'? Todos os lançamentos relacionados a ela serão apagados permanentemente. Essa ação não pode ser desfeita.');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-sm text-[var(--critical)] hover:opacity-80 transition-opacity">Excluir conta</button>
-                </form>
+                <div class="flex items-center gap-4 shrink-0">
+                    <details class="relative">
+                        <summary class="list-none cursor-pointer text-sm text-[var(--accent)] hover:opacity-80 transition-opacity">Renomear</summary>
+                        <form method="POST" action="{{ route('banks.update', $selected->id) }}"
+                            class="absolute right-0 z-10 mt-2 w-72 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2">
+                            @csrf
+                            @method('PATCH')
+                            <label for="bank-name" class="text-xs text-[var(--text-dim)]">Nome da conta</label>
+                            <input type="text" id="bank-name" name="name" value="{{ $selected->name }}" required maxlength="120"
+                                class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+                            <button type="submit"
+                                class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold py-2 text-sm hover:opacity-90 transition-opacity">
+                                Salvar
+                            </button>
+                        </form>
+                    </details>
+                    <form method="POST" action="{{ route('banks.destroy', $selected->id) }}"
+                        onsubmit="return confirm('Tem certeza que deseja excluir a conta \'{{ $selected->name }}\'? Todos os lançamentos relacionados a ela serão apagados permanentemente. Essa ação não pode ser desfeita.');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-sm text-[var(--critical)] hover:opacity-80 transition-opacity">Excluir conta</button>
+                    </form>
+                </div>
             </div>
+
+            @error('name')
+                <p class="text-sm text-[var(--critical)] mb-4">{{ $message }}</p>
+            @enderror
 
             <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden mb-4">
                 <div class="overflow-x-auto">
@@ -59,7 +80,7 @@
                                         <td class="px-4 sm:px-5 py-[3px] whitespace-nowrap">
                                             {{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($tx->description) }}
                                             @if ($tx->needs_review)
-                                                <span class="ml-1 text-xs text-[var(--warn)]" title="Nenhuma regra reconheceu esse lançamento com confiança — categoria ainda não definida.">revisar</span>
+                                                @include('partials.review-dot')
                                             @endif
                                         </td>
                                         <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">{{ $tx->category_name ?? '—' }}</td>
@@ -72,7 +93,7 @@
                                     <tr>
                                         <td colspan="4" class="p-0">
                                             <details class="group/rendimento">
-                                                <summary class="list-none cursor-pointer px-4 sm:px-5 py-[3px] flex items-center justify-between hover:bg-[var(--surface-2)] transition-colors">
+                                                <summary class="list-none cursor-pointer px-4 sm:px-5 py-[3px] flex items-center gap-4 hover:bg-[var(--surface-2)] transition-colors">
                                                     <span class="text-[var(--text-dim)]">
                                                         <span aria-hidden="true" class="inline-block transition-transform group-open/rendimento:rotate-90 mr-1">▸</span>
                                                         Rendimento automático · {{ \Illuminate\Support\Carbon::parse($group->month . '-01')->translatedFormat('M/Y') }}
@@ -82,7 +103,7 @@
                                                 </summary>
                                                 <div class="max-h-48 overflow-y-auto border-t border-[var(--border)] divide-y divide-[var(--border)]">
                                                     @foreach ($group->items as $item)
-                                                        <div class="flex items-center justify-between px-4 sm:px-5 py-2 pl-9 text-xs">
+                                                        <div class="flex items-center gap-4 px-4 sm:px-5 py-2 pl-9 text-xs">
                                                             <span class="text-[var(--text-mute)]">{{ \Illuminate\Support\Carbon::parse($item->occurred_on)->format('d/m/Y') }} — {{ $item->description }}</span>
                                                             <span class="font-mono text-[var(--in)]">R$ {{ number_format($item->amount_cents / 100, 2, ',', '.') }}</span>
                                                         </div>

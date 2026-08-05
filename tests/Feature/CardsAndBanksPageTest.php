@@ -112,14 +112,49 @@ final class CardsAndBanksPageTest extends TestCase
             ->assertSee('Cartão de benefícios');
     }
 
-    public function test_a_benefit_card_shows_the_review_tag_for_uncategorized_items(): void
+    public function test_a_benefit_card_shows_the_review_dot_for_uncategorized_items(): void
     {
         $accountId = $this->makeVoucher('Caju Alimentação');
         $this->makeTransaction($accountId, 'RESTAURANTE DO ZE');
 
         $this->actingAs($this->user)->get('/cartoes?card=v'.$accountId)
             ->assertOk()
-            ->assertSee('revisar');
+            ->assertSee('Precisa de revisão', escape: false)
+            ->assertDontSee('>revisar<', escape: false);
+    }
+
+    public function test_a_credit_card_purchase_shows_the_review_dot(): void
+    {
+        $cardId = $this->makeCreditCard('Visa Black');
+        $this->makePurchase($cardId);
+
+        $this->actingAs($this->user)->get('/cartoes?card=c'.$cardId)
+            ->assertOk()
+            ->assertSee('Precisa de revisão', escape: false);
+    }
+
+    public function test_a_bank_transaction_shows_the_review_dot(): void
+    {
+        $accountId = $this->makeAccount('Conta Corrente', 'checking');
+        $this->makeTransaction($accountId, 'PADARIA');
+
+        $this->actingAs($this->user)->get('/bancos?account='.$accountId)
+            ->assertOk()
+            ->assertSee('Precisa de revisão', escape: false)
+            ->assertDontSee('>revisar<', escape: false);
+    }
+
+    public function test_the_dashboard_shows_a_clickable_card_count(): void
+    {
+        $this->makeCreditCard('Visa Black');
+        $this->makeVoucher('Caju Alimentação');
+
+        $this->actingAs($this->user)->get('/dashboard')
+            ->assertOk()
+            ->assertSee('Cartões')
+            ->assertSee(route('cards.index'), escape: false)
+            ->assertSee(route('banks.index'), escape: false)
+            ->assertDontSee($this->user->email);
     }
 
     public function test_a_benefit_card_has_no_invoice_tabs(): void
@@ -179,6 +214,78 @@ final class CardsAndBanksPageTest extends TestCase
 
         $this->assertDatabaseMissing('accounts', ['id' => $accountId]);
         $this->assertSame(0, DB::table('transactions')->where('account_id', $accountId)->count());
+    }
+
+    public function test_it_renames_a_bank_account(): void
+    {
+        $accountId = $this->makeAccount('Conta Antiga', 'checking');
+
+        $this->actingAs($this->user)
+            ->patch('/bancos/'.$accountId, ['name' => 'Conta Nova'])
+            ->assertRedirect(route('banks.index', ['account' => $accountId]));
+
+        $this->assertDatabaseHas('accounts', ['id' => $accountId, 'name' => 'Conta Nova']);
+    }
+
+    public function test_it_renames_a_credit_card(): void
+    {
+        $cardId = $this->makeCreditCard('Visa Antigo');
+        $accountId = (int) DB::table('credit_cards')->where('id', $cardId)->value('account_id');
+
+        $this->actingAs($this->user)
+            ->patch('/cartoes/c'.$cardId, ['name' => 'Visa Novo'])
+            ->assertRedirect(route('cards.index', ['card' => 'c'.$cardId]));
+
+        $this->assertDatabaseHas('accounts', ['id' => $accountId, 'name' => 'Visa Novo']);
+    }
+
+    public function test_it_renames_a_benefit_card(): void
+    {
+        $accountId = $this->makeVoucher('Caju Antigo');
+
+        $this->actingAs($this->user)
+            ->patch('/cartoes/v'.$accountId, ['name' => 'Caju Novo'])
+            ->assertRedirect(route('cards.index', ['card' => 'v'.$accountId]));
+
+        $this->assertDatabaseHas('accounts', ['id' => $accountId, 'name' => 'Caju Novo']);
+    }
+
+    public function test_renaming_requires_a_name(): void
+    {
+        $accountId = $this->makeAccount('Conta Corrente', 'checking');
+
+        $this->actingAs($this->user)
+            ->patch('/bancos/'.$accountId, ['name' => ''])
+            ->assertSessionHasErrors('name');
+
+        $this->assertDatabaseHas('accounts', ['id' => $accountId, 'name' => 'Conta Corrente']);
+    }
+
+    public function test_it_cannot_rename_another_users_account(): void
+    {
+        $other = User::factory()->create();
+        $accountId = $this->makeAccount('Conta Corrente', 'checking');
+
+        $this->actingAs($other)->patch('/bancos/'.$accountId, ['name' => 'Invadida'])->assertNotFound();
+        $this->assertDatabaseHas('accounts', ['id' => $accountId, 'name' => 'Conta Corrente']);
+    }
+
+    public function test_it_cannot_rename_another_users_card(): void
+    {
+        $other = User::factory()->create();
+        $cardId = $this->makeCreditCard('Visa Black');
+
+        $this->actingAs($other)->patch('/cartoes/c'.$cardId, ['name' => 'Invadido'])->assertNotFound();
+    }
+
+    /** Um cartão não pode ser renomeado pela rota de contas bancárias, nem o contrário. */
+    public function test_the_bank_rename_route_refuses_a_card_account(): void
+    {
+        $cardId = $this->makeCreditCard('Visa Black');
+        $accountId = (int) DB::table('credit_cards')->where('id', $cardId)->value('account_id');
+
+        $this->actingAs($this->user)->patch('/bancos/'.$accountId, ['name' => 'Nao Deveria'])->assertNotFound();
+        $this->assertDatabaseHas('accounts', ['id' => $accountId, 'name' => 'Visa Black']);
     }
 
     public function test_it_cannot_delete_another_users_account(): void

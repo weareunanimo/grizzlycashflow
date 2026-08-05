@@ -22,8 +22,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/bancos', [BankController::class, 'index'])->name('banks.index');
+    Route::patch('/bancos/{id}', [BankController::class, 'update'])->name('banks.update');
     Route::delete('/bancos/{id}', [BankController::class, 'destroy'])->name('banks.destroy');
     Route::get('/cartoes', [CreditCardController::class, 'index'])->name('cards.index');
+    Route::patch('/cartoes/{key}', [CreditCardController::class, 'update'])->name('cards.update');
     Route::delete('/cartoes/{key}', [CreditCardController::class, 'destroy'])->name('cards.destroy');
 
     Route::get('/accounts/new', [NewAccountController::class, 'create'])->name('accounts.create');

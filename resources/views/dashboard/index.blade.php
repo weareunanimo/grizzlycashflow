@@ -3,22 +3,21 @@
 @section('title', 'Dashboard — ' . config('app.name', 'Grizzly Cashflow'))
 
 @section('content')
-    <h1 class="text-2xl font-semibold mb-1">Olá, {{ $user->name }}</h1>
-    <p class="text-sm text-[var(--text-dim)] mb-8">{{ $user->email }}</p>
+    <h1 class="text-2xl font-semibold mb-8">Olá, {{ $user->name }}</h1>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-        <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-5">
-            <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-1">Contas</p>
-            <p class="text-2xl font-semibold">{{ $accounts->count() }}</p>
-        </div>
-        <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-5">
-            <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-1">Categorias</p>
-            <p class="text-2xl font-semibold">{{ $categoryCount }}</p>
-        </div>
-        <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-5">
-            <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-1">Regras de categorização</p>
-            <p class="text-2xl font-semibold">{{ $ruleCount }}</p>
-        </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        @foreach ([
+            ['label' => 'Contas', 'value' => $accounts->count(), 'route' => route('banks.index')],
+            ['label' => 'Cartões', 'value' => $creditCards->count() + $benefitCards->count(), 'route' => route('cards.index')],
+            ['label' => 'Categorias', 'value' => $categoryCount, 'route' => route('closing.index')],
+            ['label' => 'Regras de categorização', 'value' => $ruleCount, 'route' => route('review.index')],
+        ] as $card)
+            <a href="{{ $card['route'] }}"
+                class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-5 hover:bg-[var(--surface-2)] hover:border-[var(--text-mute)] transition-colors">
+                <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-1">{{ $card['label'] }}</p>
+                <p class="text-2xl font-semibold">{{ $card['value'] }}</p>
+            </a>
+        @endforeach
     </div>
 
     <section class="mb-10 pt-6">

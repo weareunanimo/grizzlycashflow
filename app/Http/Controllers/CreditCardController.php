@@ -181,6 +181,49 @@ final class CreditCardController extends Controller
             });
     }
 
+    /**
+     * O nome visível de um cartão (de crédito ou de benefícios) mora em
+     * `accounts.name` nos dois casos — só o caminho até a conta muda.
+     */
+    public function update(Request $request, string $key): RedirectResponse
+    {
+        $userId = Auth::id();
+        $validated = $request->validate(['name' => ['required', 'string', 'max:120']]);
+
+        $accountId = $this->accountIdForKey($userId, $key);
+
+        DB::table('accounts')
+            ->where('id', $accountId)
+            ->where('user_id', $userId)
+            ->update(['name' => $validated['name'], 'updated_at' => now()]);
+
+        return redirect()
+            ->route('cards.index', ['card' => $key])
+            ->with('status', "Cartão renomeado para \"{$validated['name']}\".");
+    }
+
+    private function accountIdForKey(int $userId, string $key): int
+    {
+        if (str_starts_with($key, 'v')) {
+            $accountId = DB::table('accounts')
+                ->where('id', (int) substr($key, 1))
+                ->where('user_id', $userId)
+                ->where('type', 'voucher')
+                ->value('id');
+        } else {
+            $accountId = DB::table('credit_cards')
+                ->where('id', (int) ltrim($key, 'c'))
+                ->where('user_id', $userId)
+                ->value('account_id');
+        }
+
+        if ($accountId === null) {
+            abort(404);
+        }
+
+        return (int) $accountId;
+    }
+
     public function destroy(string $key): RedirectResponse
     {
         $userId = Auth::id();

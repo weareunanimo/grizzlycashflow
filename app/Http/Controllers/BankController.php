@@ -70,6 +70,26 @@ final class BankController extends Controller
         ]);
     }
 
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $userId = Auth::id();
+        $validated = $request->validate(['name' => ['required', 'string', 'max:120']]);
+
+        $updated = DB::table('accounts')
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->whereNotIn('type', ['credit_card', 'voucher'])
+            ->update(['name' => $validated['name'], 'updated_at' => now()]);
+
+        if ($updated === 0) {
+            abort(404);
+        }
+
+        return redirect()
+            ->route('banks.index', ['account' => $id])
+            ->with('status', "Conta renomeada para \"{$validated['name']}\".");
+    }
+
     public function destroy(int $id): RedirectResponse
     {
         $userId = Auth::id();

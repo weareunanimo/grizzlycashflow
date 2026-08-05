@@ -275,11 +275,15 @@ final class ContaImportController extends Controller
 
     private function categoryIdByName(int $userId, string $name): ?int
     {
-        return DB::table('categories')
+        // (int) explícito: em MySQL com STRINGIFY_FETCHES o id volta como string,
+        // e o retorno declarado ?int lançaria TypeError sob strict_types.
+        $id = DB::table('categories')
             ->where('user_id', $userId)
             ->where('name', $name)
             ->whereNull('parent_id')
             ->value('id');
+
+        return $id === null ? null : (int) $id;
     }
 
     /** @return list<array{conditions:array,actions:array}> */

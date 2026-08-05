@@ -142,10 +142,12 @@ final class ReviewController extends Controller
             ->get()
             ->map(fn ($tx) => (object) [
                 'kind' => 'bank',
-                'id' => $tx->id,
+                // (int) obrigatório: o MySQL do hosting devolve colunas numéricas
+                // como string, e daí pra frente tudo que espera int quebraria.
+                'id' => (int) $tx->id,
                 'date' => $tx->occurred_on,
-                'description' => $tx->description,
-                'amount_cents' => $tx->direction === 'out' ? -$tx->amount_cents : $tx->amount_cents,
+                'description' => (string) $tx->description,
+                'amount_cents' => $tx->direction === 'out' ? -((int) $tx->amount_cents) : (int) $tx->amount_cents,
                 'sort_key' => $tx->occurred_on.'-'.str_pad((string) $tx->id, 12, '0', STR_PAD_LEFT),
             ]);
     }
@@ -162,10 +164,10 @@ final class ReviewController extends Controller
             ->get()
             ->map(fn ($p) => (object) [
                 'kind' => 'card',
-                'id' => $p->id,
+                'id' => (int) $p->id,
                 'date' => $p->purchase_date,
-                'description' => $p->description,
-                'amount_cents' => $p->installment_amount_cents,
+                'description' => (string) $p->description,
+                'amount_cents' => (int) $p->installment_amount_cents,
                 'sort_key' => $p->purchase_date.'-'.str_pad((string) $p->id, 12, '0', STR_PAD_LEFT),
             ]);
     }
@@ -185,7 +187,7 @@ final class ReviewController extends Controller
             ->orderByDesc('hits')
             ->first();
 
-        return $row->category_id ?? null;
+        return isset($row->category_id) ? (int) $row->category_id : null;
     }
 
     /**
@@ -250,7 +252,8 @@ final class ReviewController extends Controller
 
         $build = function ($parentId, int $depth) use (&$build, $byParent, &$options): void {
             foreach ($byParent->get($parentId, collect()) as $category) {
-                $options[] = ['id' => $category->id, 'label' => str_repeat('— ', $depth).$category->name];
+                // (int) para a sugestão pré-selecionada casar no === da view.
+                $options[] = ['id' => (int) $category->id, 'label' => str_repeat('— ', $depth).$category->name];
                 $build($category->id, $depth + 1);
             }
         };

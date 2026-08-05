@@ -55,7 +55,7 @@
                     <a href="{{ route('review.index') }}" class="text-sm text-[var(--text-dim)] underline">Limpar filtros</a>
                 @endif
                 <span class="text-xs text-[var(--text-mute)] ml-auto">
-                    {{ $pending->total() }} {{ $pending->total() === 1 ? 'lançamento pendente' : 'lançamentos pendentes' }}
+                    {{ $pending->total() }} {{ $pending->total() === 1 ? 'estabelecimento a revisar' : 'estabelecimentos a revisar' }}
                 </span>
             </div>
         </form>
@@ -83,7 +83,7 @@
                 <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div class="min-w-0 lg:flex-1">
                         <p class="font-medium break-words">
-                            {{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($row->description) }}
+                            {{ $row->display_name }}
                             <span class="text-xs text-[var(--text-mute)] font-normal">{{ $row->kind === 'bank' ? '· banco' : '· cartão' }}</span>
                         </p>
                         <p class="text-xs text-[var(--text-dim)] mt-0.5">
@@ -91,6 +91,10 @@
                             <span class="font-mono {{ $row->amount_cents < 0 ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
                                 R$ {{ number_format($row->amount_cents / 100, 2, ',', '.') }}
                             </span>
+                            @if ($row->group_count > 1)
+                                · <span class="text-[var(--warn)]">{{ $row->group_count }} lançamentos deste estabelecimento</span>,
+                                somando <span class="font-mono">R$ {{ number_format(abs($row->group_total_cents) / 100, 2, ',', '.') }}</span>
+                            @endif
                         </p>
 
                         @if ($suggestedName)

@@ -122,8 +122,8 @@ final class ReviewPageTest extends TestCase
         $this->actingAs($this->user)
             ->get('/review?cards[]=c'.$this->cardId)
             ->assertOk()
-            ->assertSee('COMPRA CARTAO UM')
-            ->assertDontSee('COMPRA CARTAO DOIS');
+            ->assertSee('Compra Cartao Um')
+            ->assertDontSee('Compra Cartao Dois');
     }
 
     public function test_it_filters_by_accounts_and_cards_together(): void
@@ -135,7 +135,7 @@ final class ReviewPageTest extends TestCase
             ->get('/review?accounts[]='.$this->accountId.'&cards[]=c'.$this->cardId)
             ->assertOk()
             ->assertSee('Compra na Conta Um')
-            ->assertSee('COMPRA CARTAO UM');
+            ->assertSee('Compra Cartao Um');
     }
 
     public function test_it_survives_garbage_filter_values(): void

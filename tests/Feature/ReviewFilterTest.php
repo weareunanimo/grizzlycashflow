@@ -57,8 +57,8 @@ final class ReviewFilterTest extends TestCase
         $this->transaction($this->bankId, 'LANCAMENTO DO BANCO XP');
         $this->transaction($this->otherBankId, 'LANCAMENTO DO BANCO OUTRO');
         $this->transaction($this->voucherAccountId, 'LANCAMENTO DO CAJU');
-        $this->purchase($this->cardId, 'COMPRA NO VISA BLACK');
-        $this->purchase($this->otherCardId, 'COMPRA NO MASTER');
+        $this->purchase($this->cardId, 'Compra No Visa Black');
+        $this->purchase($this->otherCardId, 'Compra No Master');
     }
 
     public function test_without_filters_it_shows_everything(): void
@@ -68,8 +68,8 @@ final class ReviewFilterTest extends TestCase
             ->assertSee('LANCAMENTO DO BANCO XP')
             ->assertSee('LANCAMENTO DO BANCO OUTRO')
             ->assertSee('LANCAMENTO DO CAJU')
-            ->assertSee('COMPRA NO VISA BLACK')
-            ->assertSee('COMPRA NO MASTER');
+            ->assertSee('Compra No Visa Black')
+            ->assertSee('Compra No Master');
     }
 
     /** O bug relatado: selecionar a conta deixava passar todas as compras de cartão. */
@@ -80,8 +80,8 @@ final class ReviewFilterTest extends TestCase
             ->assertSee('LANCAMENTO DO BANCO XP')
             ->assertDontSee('LANCAMENTO DO BANCO OUTRO')
             ->assertDontSee('LANCAMENTO DO CAJU')
-            ->assertDontSee('COMPRA NO VISA BLACK')
-            ->assertDontSee('COMPRA NO MASTER');
+            ->assertDontSee('Compra No Visa Black')
+            ->assertDontSee('Compra No Master');
     }
 
     /** E o espelho: selecionar o cartão deixava passar todo o extrato. */
@@ -89,8 +89,8 @@ final class ReviewFilterTest extends TestCase
     {
         $this->actingAs($this->user)->get('/review?cards[]=c'.$this->cardId)
             ->assertOk()
-            ->assertSee('COMPRA NO VISA BLACK')
-            ->assertDontSee('COMPRA NO MASTER')
+            ->assertSee('Compra No Visa Black')
+            ->assertDontSee('Compra No Master')
             ->assertDontSee('LANCAMENTO DO BANCO XP')
             ->assertDontSee('LANCAMENTO DO BANCO OUTRO')
             ->assertDontSee('LANCAMENTO DO CAJU');
@@ -104,8 +104,8 @@ final class ReviewFilterTest extends TestCase
         $this->assertNotSame($bank, $card, 'conta e cartão não podem devolver o mesmo resultado');
         $this->assertStringContainsString('LANCAMENTO DO BANCO XP', $bank);
         $this->assertStringNotContainsString('LANCAMENTO DO BANCO XP', $card);
-        $this->assertStringContainsString('COMPRA NO VISA BLACK', $card);
-        $this->assertStringNotContainsString('COMPRA NO VISA BLACK', $bank);
+        $this->assertStringContainsString('Compra No Visa Black', $card);
+        $this->assertStringNotContainsString('Compra No Visa Black', $bank);
     }
 
     /** Cartão de benefícios vive em `transactions`, mas é filtrado como cartão. */
@@ -115,7 +115,7 @@ final class ReviewFilterTest extends TestCase
             ->assertOk()
             ->assertSee('LANCAMENTO DO CAJU')
             ->assertDontSee('LANCAMENTO DO BANCO XP')
-            ->assertDontSee('COMPRA NO VISA BLACK');
+            ->assertDontSee('Compra No Visa Black');
     }
 
     public function test_selecting_a_bank_and_a_card_together_shows_the_union(): void
@@ -124,9 +124,9 @@ final class ReviewFilterTest extends TestCase
             ->get('/review?accounts[]='.$this->bankId.'&cards[]=c'.$this->cardId)
             ->assertOk()
             ->assertSee('LANCAMENTO DO BANCO XP')
-            ->assertSee('COMPRA NO VISA BLACK')
+            ->assertSee('Compra No Visa Black')
             ->assertDontSee('LANCAMENTO DO BANCO OUTRO')
-            ->assertDontSee('COMPRA NO MASTER')
+            ->assertDontSee('Compra No Master')
             ->assertDontSee('LANCAMENTO DO CAJU');
     }
 
@@ -136,7 +136,7 @@ final class ReviewFilterTest extends TestCase
             ->get('/review?cards[]=v'.$this->voucherAccountId.'&cards[]=c'.$this->cardId)
             ->assertOk()
             ->assertSee('LANCAMENTO DO CAJU')
-            ->assertSee('COMPRA NO VISA BLACK')
+            ->assertSee('Compra No Visa Black')
             ->assertDontSee('LANCAMENTO DO BANCO XP');
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Support\RendimentoCategorizer;
+use App\Support\ReviewQueue;
 use Grizzly\Application\Classification\RuleMatcher;
 use Grizzly\Domain\Classification\MerchantNormalizer;
 use Illuminate\Http\RedirectResponse;
@@ -76,17 +77,8 @@ final class ReviewController extends Controller
 
         // Sem filtro, mostra tudo. Com filtro, cada lado só entra se foi escolhido —
         // antes o lado sem seleção passava inteiro, e conta e cartão devolviam o mesmo.
-        $rows = collect();
-
-        if (! $hasFilter || $transactionAccountIds !== []) {
-            $rows = $rows->concat($this->pendingTransactions($userId, $transactionAccountIds));
-        }
-
-        if (! $hasFilter || $creditCardIds !== []) {
-            $rows = $rows->concat($this->pendingPurchases($userId, $creditCardIds));
-        }
-
-        $rows = $rows->sortByDesc('sort_key')->values();
+        // A fila devolve um representante por estabelecimento, não um card por lançamento.
+        $rows = ReviewQueue::groups($userId, $transactionAccountIds, $creditCardIds, $hasFilter);
 
         $page = max(1, (int) $request->query('page', 1));
         $slice = $rows->forPage($page, self::PER_PAGE)->values();
@@ -206,29 +198,41 @@ final class ReviewController extends Controller
             abort(404);
         }
 
-        // card_purchases não tem category_source/category_confidence (só transactions tem).
-        $fields = ['category_id' => $categoryId, 'needs_review' => false, 'updated_at' => now()];
-        if ($kind === 'bank') {
-            $fields['category_source'] = 'user';
-            $fields['category_confidence'] = 1.000;
+        // A decisão vale para o grupo inteiro (mesmo estabelecimento), nas duas
+        // tabelas — é o que evita revisar a mesma contraparte dezenas de vezes.
+        $groupKey = ReviewQueue::groupKeyFor((string) $row->description);
+        $equivalent = ReviewQueue::equivalentPendingIds($userId, $groupKey);
+
+        $equivalent[$kind === 'bank' ? 'bank' : 'card'][] = $id;
+
+        $applied = 0;
+
+        foreach (['bank' => 'transactions', 'card' => 'card_purchases'] as $target => $targetTable) {
+            $ids = array_values(array_unique($equivalent[$target]));
+
+            if ($ids === []) {
+                continue;
+            }
+
+            // card_purchases não tem category_source/category_confidence (só transactions tem).
+            $fields = ['category_id' => $categoryId, 'needs_review' => false, 'updated_at' => now()];
+            if ($target === 'bank') {
+                $fields['category_source'] = 'user';
+                $fields['category_confidence'] = 1.000;
+            }
+
+            $applied += DB::table($targetTable)
+                ->where('user_id', $userId)
+                ->whereIn('id', $ids)
+                ->update($fields);
         }
-
-        DB::table($table)->where('id', $id)->update($fields);
-
-        $replicated = DB::table($table)
-            ->where('user_id', $userId)
-            ->where('id', '!=', $id)
-            ->where('needs_review', true)
-            ->whereNull('deleted_at')
-            ->whereRaw('LOWER(description) = LOWER(?)', [$row->description])
-            ->update($fields);
 
         $this->learnRule($userId, $row->description, $categoryId);
 
         $name = DB::table('categories')->where('id', $categoryId)->value('name');
 
-        $status = $replicated > 0
-            ? "\"{$name}\" aplicada e replicada em mais {$replicated} lançamento(s) igual(is)."
+        $status = $applied > 1
+            ? "\"{$name}\" aplicada em {$applied} lançamentos do mesmo estabelecimento."
             : "\"{$name}\" aplicada.";
 
         if ($newCategory !== '') {
@@ -293,48 +297,6 @@ final class ReviewController extends Controller
             ->where('id', $categoryId)
             ->where('user_id', $userId)
             ->exists();
-    }
-
-    /** @param list<int> $accountIds */
-    private function pendingTransactions(int $userId, array $accountIds): Collection
-    {
-        return DB::table('transactions')
-            ->where('user_id', $userId)
-            ->where('needs_review', true)
-            ->whereNull('deleted_at')
-            ->when($accountIds !== [], fn ($q) => $q->whereIn('account_id', $accountIds))
-            ->orderByDesc('occurred_on')
-            ->get()
-            ->map(fn ($tx) => (object) [
-                'kind' => 'bank',
-                // (int) obrigatório: o MySQL do hosting devolve colunas numéricas
-                // como string, e daí pra frente tudo que espera int quebraria.
-                'id' => (int) $tx->id,
-                'date' => $tx->occurred_on,
-                'description' => (string) $tx->description,
-                'amount_cents' => $tx->direction === 'out' ? -((int) $tx->amount_cents) : (int) $tx->amount_cents,
-                'sort_key' => $tx->occurred_on.'-'.str_pad((string) $tx->id, 12, '0', STR_PAD_LEFT),
-            ]);
-    }
-
-    /** @param list<int> $cardIds */
-    private function pendingPurchases(int $userId, array $cardIds): Collection
-    {
-        return DB::table('card_purchases')
-            ->where('user_id', $userId)
-            ->where('needs_review', true)
-            ->whereNull('deleted_at')
-            ->when($cardIds !== [], fn ($q) => $q->whereIn('credit_card_id', $cardIds))
-            ->orderByDesc('purchase_date')
-            ->get()
-            ->map(fn ($p) => (object) [
-                'kind' => 'card',
-                'id' => (int) $p->id,
-                'date' => $p->purchase_date,
-                'description' => (string) $p->description,
-                'amount_cents' => (int) $p->installment_amount_cents,
-                'sort_key' => $p->purchase_date.'-'.str_pad((string) $p->id, 12, '0', STR_PAD_LEFT),
-            ]);
     }
 
     /**

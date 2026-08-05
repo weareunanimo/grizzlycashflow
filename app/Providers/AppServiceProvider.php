@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
+use App\Support\ReviewQueue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,15 +28,9 @@ class AppServiceProvider extends ServiceProvider
         Carbon::setLocale(config('app.locale'));
 
         View::composer('layouts.app', function ($view): void {
-            $count = 0;
-
-            if (Auth::check()) {
-                $count = DB::table('transactions')
-                    ->where('user_id', Auth::id())
-                    ->where('needs_review', true)
-                    ->whereNull('deleted_at')
-                    ->count();
-            }
+            // Conta grupos, a mesma unidade que a tela Revisar mostra — contando
+            // lançamentos, o badge diria 40 e a tela listaria 12.
+            $count = Auth::check() ? ReviewQueue::groupCount((int) Auth::id()) : 0;
 
             $view->with('pendingReviewCount', $count);
         });

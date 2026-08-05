@@ -14,21 +14,21 @@
                         <th class="px-4 py-3">Data</th>
                         <th class="px-4 py-3">Descrição</th>
                         <th class="px-4 py-3">Categoria</th>
-                        <th class="px-4 py-3 text-right">Valor</th>
+                        <th class="px-4 py-3">Valor</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--border)]">
                     @forelse ($transactions as $tx)
                         <tr>
-                            <td class="px-4 py-2.5 whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($tx->occurred_on)->format('d/m/Y') }}</td>
-                            <td class="px-4 py-2.5">
+                            <td class="px-4 py-[3px] whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($tx->occurred_on)->format('d/m/Y') }}</td>
+                            <td class="px-4 py-[3px]">
                                 {{ $tx->description }}
                                 @if ($tx->needs_review)
                                     <span class="ml-1 text-xs text-[var(--warn)]">revisar</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-2.5 text-[var(--text-dim)]">{{ $tx->category_name ?? '—' }}</td>
-                            <td class="px-4 py-2.5 text-right font-mono {{ $tx->direction === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
+                            <td class="px-4 py-[3px] text-[var(--text-dim)]">{{ $tx->category_name ?? '—' }}</td>
+                            <td class="px-4 py-[3px] font-mono {{ $tx->direction === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
                                 {{ $tx->direction === 'out' ? '-' : '' }}R$ {{ number_format($tx->amount_cents / 100, 2, ',', '.') }}
                             </td>
                         </tr>

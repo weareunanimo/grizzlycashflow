@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <section class="mb-10">
+    <section class="mb-10 pt-6">
         <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider mb-4">Contas</h2>
         <div class="space-y-4">
             @foreach ($accounts as $account)
@@ -56,7 +56,7 @@
         </div>
     </section>
 
-    <section>
+    <section class="pt-6">
         <h2 class="text-sm font-semibold text-[var(--text-dim)] uppercase tracking-wider mb-4">Cartões de crédito</h2>
         <div class="space-y-4">
             @forelse ($creditCards as $card)

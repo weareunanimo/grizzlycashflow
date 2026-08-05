@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Import;
 
 use App\Http\Controllers\Controller;
+use App\Support\RendimentoCategorizer;
 use Grizzly\Application\Classification\RuleMatcher;
 use Grizzly\Application\Ingestion\XpContaCsvParser;
 use Grizzly\Domain\Classification\MerchantNormalizer;
@@ -213,6 +214,10 @@ final class ContaImportController extends Controller
 
         Storage::delete($pending['path']);
         $request->session()->forget('import.conta');
+
+        // Fecha o histórico: rendimento automático que entrou antes desta regra
+        // existir também passa a ficar em Rendimentos.
+        RendimentoCategorizer::backfill($userId);
 
         return redirect()->route('banks.index', ['account' => $account->id])
             ->with('status', "{$created} lançamentos importados, {$skipped} já existiam e foram ignorados.");

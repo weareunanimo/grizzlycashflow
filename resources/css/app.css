@@ -8,6 +8,25 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+/* Espaçamento de tabela — fonte única de verdade para todas as telas.
+   Antes cada view repetia px-4 sm:px-5 py-[3px] célula por célula, o que saía
+   do compasso a cada tela nova. Utilitário aplicado direto na célula (ex: p-0
+   na linha de rendimentos) continua vencendo, por estar na layer utilities. */
+@layer base {
+    th,
+    td {
+        padding-block: 0.625rem; /* 10px em cima e embaixo */
+        padding-inline: 0.75rem; /* 12px nas laterais */
+    }
+
+    @media (min-width: 640px) {
+        th,
+        td {
+            padding-inline: 1.25rem; /* 20px a partir de sm */
+        }
+    }
+}
+
 /* Design tokens — docs/08-ux.md (dark = padrão) */
 :root {
     /* Faz o navegador desenhar os controles nativos no tema escuro — sem isso o

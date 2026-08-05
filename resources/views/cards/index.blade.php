@@ -76,24 +76,24 @@
                         <table class="w-full min-w-[640px] text-sm">
                             <thead>
                                 <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
-                                    <th class="px-4 sm:px-5 py-3">Data</th>
-                                    <th class="px-4 sm:px-5 py-3">Descrição</th>
-                                    <th class="px-4 sm:px-5 py-3">Categoria</th>
-                                    <th class="px-4 sm:px-5 py-3">Valor</th>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Valor</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[var(--border)]">
                                 @forelse ($rows as $tx)
                                     <tr>
-                                        <td class="px-4 sm:px-5 py-[3px] whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($tx->occurred_on)->format('d/m/Y') }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] whitespace-nowrap">
+                                        <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($tx->occurred_on)->format('d/m/Y') }}</td>
+                                        <td class="whitespace-nowrap">
                                             {{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($tx->description) }}
                                             @if ($tx->needs_review)
                                                 @include('partials.review-dot')
                                             @endif
                                         </td>
-                                        <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">{{ $tx->category_name ?? '—' }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] font-mono {{ $tx->direction === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
+                                        <td class="text-[var(--text-dim)]">{{ $tx->category_name ?? '—' }}</td>
+                                        <td class="font-mono {{ $tx->direction === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
                                             {{ $tx->direction === 'out' ? '-' : '' }}R$ {{ number_format($tx->amount_cents / 100, 2, ',', '.') }}
                                         </td>
                                     </tr>
@@ -128,30 +128,30 @@
                         <table class="w-full min-w-[640px] text-sm">
                             <thead>
                                 <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
-                                    <th class="px-4 sm:px-5 py-3">Data</th>
-                                    <th class="px-4 sm:px-5 py-3">Estabelecimento</th>
-                                    <th class="px-4 sm:px-5 py-3">Categoria</th>
-                                    <th class="px-4 sm:px-5 py-3">Parcelas</th>
-                                    <th class="px-4 sm:px-5 py-3">Valor/parcela</th>
+                                    <th>Data</th>
+                                    <th>Estabelecimento</th>
+                                    <th>Categoria</th>
+                                    <th>Parcelas</th>
+                                    <th>Valor/parcela</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[var(--border)]">
                                 @forelse ($purchases as $purchase)
                                     <tr>
-                                        <td class="px-4 sm:px-5 py-[3px] whitespace-nowrap">
+                                        <td class="whitespace-nowrap">
                                             {{ $purchase->purchase_date ? \Illuminate\Support\Carbon::parse($purchase->purchase_date)->format('d/m/Y') : '—' }}
                                         </td>
-                                        <td class="px-4 sm:px-5 py-[3px] whitespace-nowrap">{{ $purchase->display_name }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">
+                                        <td class="whitespace-nowrap">{{ $purchase->display_name }}</td>
+                                        <td class="text-[var(--text-dim)]">
                                             {{ $purchase->category_name ?? '—' }}
                                             @if ($purchase->needs_review)
                                                 @include('partials.review-dot')
                                             @endif
                                         </td>
-                                        <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">
+                                        <td class="text-[var(--text-dim)]">
                                             {{ $purchase->current_number ?? 1 }}/{{ $purchase->installments_total }}x
                                         </td>
-                                        <td class="px-4 sm:px-5 py-[3px] font-mono {{ $purchase->installment_amount_cents < 0 ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
+                                        <td class="font-mono {{ $purchase->installment_amount_cents < 0 ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
                                             R$ {{ number_format($purchase->installment_amount_cents / 100, 2, ',', '.') }}
                                         </td>
                                     </tr>
@@ -179,17 +179,17 @@
                         <table class="w-full min-w-[640px] text-sm">
                             <thead>
                                 <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
-                                    <th class="px-4 sm:px-5 py-3">Mês</th>
-                                    <th class="px-4 sm:px-5 py-3">Itens</th>
-                                    <th class="px-4 sm:px-5 py-3">Total</th>
+                                    <th>Mês</th>
+                                    <th>Itens</th>
+                                    <th>Total</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[var(--border)]">
                                 @foreach ($projection as $month)
                                     <tr>
-                                        <td class="px-4 sm:px-5 py-[3px]">{{ \Illuminate\Support\Carbon::parse($month->reference_month)->format('m/Y') }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] text-[var(--text-dim)]">{{ $month->items }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] font-mono text-[var(--out)]">
+                                        <td>{{ \Illuminate\Support\Carbon::parse($month->reference_month)->format('m/Y') }}</td>
+                                        <td class="text-[var(--text-dim)]">{{ $month->items }}</td>
+                                        <td class="font-mono text-[var(--out)]">
                                             R$ {{ number_format($month->total_cents / 100, 2, ',', '.') }}
                                         </td>
                                     </tr>
@@ -206,11 +206,11 @@
                         <table class="w-full min-w-[640px] text-sm">
                             <thead>
                                 <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
-                                    <th class="px-4 sm:px-5 py-3">Compra</th>
-                                    <th class="px-4 sm:px-5 py-3">Valor/parcela</th>
-                                    <th class="px-4 sm:px-5 py-3">Pagas</th>
-                                    <th class="px-4 sm:px-5 py-3">Faltam</th>
-                                    <th class="px-4 sm:px-5 py-3">Progresso</th>
+                                    <th>Compra</th>
+                                    <th>Valor/parcela</th>
+                                    <th>Pagas</th>
+                                    <th>Faltam</th>
+                                    <th>Progresso</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-[var(--border)]">
@@ -221,11 +221,11 @@
                                         $pct = $purchase->installments_total > 0 ? round(($paid / $purchase->installments_total) * 100) : 0;
                                     @endphp
                                     <tr>
-                                        <td class="px-4 sm:px-5 py-[3px] whitespace-nowrap">{{ $purchase->display_name }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] font-mono text-[var(--text-dim)]">R$ {{ number_format($purchase->installment_amount_cents / 100, 2, ',', '.') }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] text-[var(--in)]">{{ $paid }}/{{ $purchase->installments_total }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px] text-[var(--out)]">{{ $remaining }}</td>
-                                        <td class="px-4 sm:px-5 py-[3px]">
+                                        <td class="whitespace-nowrap">{{ $purchase->display_name }}</td>
+                                        <td class="font-mono text-[var(--text-dim)]">R$ {{ number_format($purchase->installment_amount_cents / 100, 2, ',', '.') }}</td>
+                                        <td class="text-[var(--in)]">{{ $paid }}/{{ $purchase->installments_total }}</td>
+                                        <td class="text-[var(--out)]">{{ $remaining }}</td>
+                                        <td>
                                             <div class="w-32 h-1.5 rounded-full bg-[var(--surface-2)] overflow-hidden">
                                                 <div class="h-full bg-[var(--accent)]" style="width: {{ $pct }}%"></div>
                                             </div>

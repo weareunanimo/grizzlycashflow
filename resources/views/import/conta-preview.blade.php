@@ -32,21 +32,21 @@
             <table class="w-full min-w-[640px] text-sm">
                 <thead>
                     <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
-                        <th class="px-4 py-3">Data</th>
-                        <th class="px-4 py-3">Descrição</th>
-                        <th class="px-4 py-3">Valor</th>
-                        <th class="px-4 py-3">Status</th>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--border)]">
                     @foreach ($rows as $row)
                         <tr class="{{ $row['decision'] === 'duplicata' ? 'opacity-50' : '' }}">
-                            <td class="px-4 py-[3px] whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
-                            <td class="px-4 py-[3px] whitespace-nowrap">{{ $row['description'] }}</td>
-                            <td class="px-4 py-[3px] font-mono {{ $row['direction'] === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
+                            <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['date'])->format('d/m/Y') }}</td>
+                            <td class="whitespace-nowrap">{{ $row['description'] }}</td>
+                            <td class="font-mono {{ $row['direction'] === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
                                 {{ $row['amount']->formatBrl() }}
                             </td>
-                            <td class="px-4 py-[3px]">
+                            <td>
                                 @if ($row['decision'] === 'novo')
                                     <span class="text-xs text-[var(--in)]">novo</span>
                                 @else

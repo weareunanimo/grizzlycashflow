@@ -26,29 +26,29 @@
             <table class="w-full min-w-[640px] text-sm">
                 <thead>
                     <tr class="border-b border-[var(--border)] text-left text-xs uppercase tracking-wider text-[var(--text-mute)]">
-                        <th class="px-4 py-3">Compra</th>
-                        <th class="px-4 py-3">Estabelecimento</th>
-                        <th class="px-4 py-3">Valor</th>
-                        <th class="px-4 py-3">Parcela</th>
-                        <th class="px-4 py-3">Status</th>
+                        <th>Compra</th>
+                        <th>Estabelecimento</th>
+                        <th>Valor</th>
+                        <th>Parcela</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-[var(--border)]">
                     @foreach ($rows as $row)
                         <tr class="{{ $row['decision'] === 'ignorado' ? 'opacity-40' : '' }}">
-                            <td class="px-4 py-[3px] whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['purchase_date'])->format('d/m/Y') }}</td>
-                            <td class="px-4 py-[3px] whitespace-nowrap">{{ \Grizzly\Domain\Classification\MerchantDisplayName::forRawDescription($row['description']) }}</td>
-                            <td class="px-4 py-[3px] font-mono {{ $row['amount']->isNegative() ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
+                            <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($row['purchase_date'])->format('d/m/Y') }}</td>
+                            <td class="whitespace-nowrap">{{ \Grizzly\Domain\Classification\MerchantDisplayName::forRawDescription($row['description']) }}</td>
+                            <td class="font-mono {{ $row['amount']->isNegative() ? 'text-[var(--in)]' : 'text-[var(--out)]' }}">
                                 {{ $row['amount']->formatBrl() }}
                             </td>
-                            <td class="px-4 py-[3px] text-[var(--text-dim)]">
+                            <td class="text-[var(--text-dim)]">
                                 @if ($row['installment_number'])
                                     {{ $row['installment_number'] }}/{{ $row['installment_total'] }}
                                 @else
                                     —
                                 @endif
                             </td>
-                            <td class="px-4 py-[3px] text-xs">
+                            <td class="text-xs">
                                 @if ($row['decision'] === 'nova_compra')
                                     <span class="text-[var(--in)]">nova compra</span>
                                 @elseif ($row['decision'] === 'confirma_projecao')

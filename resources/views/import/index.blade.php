@@ -4,7 +4,7 @@
 
 @section('content')
     <h1 class="text-2xl font-semibold mb-1">Importar</h1>
-    <p class="text-sm text-[var(--text-dim)] mb-8">Escolha o que você vai subir: o extrato da conta ou a fatura do cartão.</p>
+    <p class="text-sm text-[var(--text-dim)] mb-8">Escolha o que você vai subir: o extrato da conta bancária ou o documento de um cartão.</p>
 
     <div class="inline-flex gap-[1px] mb-6 text-sm bg-[var(--surface-1)] border border-[var(--border)] rounded-lg p-1">
         <button type="button" id="tab-conta"
@@ -15,7 +15,7 @@
         <button type="button" id="tab-fatura"
             onclick="document.getElementById('form-fatura').classList.remove('hidden'); document.getElementById('form-conta').classList.add('hidden'); document.getElementById('tab-fatura').classList.add('bg-[var(--surface-2)]','text-[var(--text)]','font-medium'); document.getElementById('tab-fatura').classList.remove('text-[var(--text-dim)]'); document.getElementById('tab-conta').classList.remove('bg-[var(--surface-2)]','text-[var(--text)]','font-medium'); document.getElementById('tab-conta').classList.add('text-[var(--text-dim)]');"
             class="px-4 py-2 rounded-md transition-colors text-[var(--text-dim)]">
-            Fatura do cartão
+            Fatura ou extrato do cartão
         </button>
     </div>
 
@@ -64,16 +64,19 @@
     </div>
 
     <div id="form-fatura" class="hidden bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-6 max-w-lg">
-        <p class="text-sm text-[var(--text-dim)] mb-4">CSV exportado do app do cartão (fatura).</p>
-        <form method="POST" action="{{ route('import.fatura.preview') }}" enctype="multipart/form-data" class="space-y-4">
+        <p class="text-sm text-[var(--text-dim)] mb-4">
+            CSV exportado do app do cartão. Cartão de crédito manda a fatura; cartão de benefícios manda o extrato.
+        </p>
+        <form method="POST" action="{{ route('import.cartao.preview') }}" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <div>
-                <label for="credit_card_id" class="block text-sm text-[var(--text-dim)] mb-1">Cartão</label>
+                <label for="card_key" class="block text-sm text-[var(--text-dim)] mb-1">Cartão</label>
                 <div class="relative">
-                    <select id="credit_card_id" name="credit_card_id" required
+                    <select id="card_key" name="card_key" required
+                        onchange="grizzlyCardChanged(this)"
                         class="w-full appearance-none rounded-md bg-[var(--surface-2)] border border-[var(--border)] pl-3 pr-9 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
                         @forelse ($cards as $card)
-                            <option value="{{ $card->id }}">{{ $card->name }}</option>
+                            <option value="{{ $card->key }}" data-needs-month="{{ $card->needs_month ? '1' : '0' }}">{{ $card->name }}</option>
                         @empty
                             <option value="" disabled selected>Nenhum cartão cadastrado</option>
                         @endforelse
@@ -104,9 +107,11 @@
                         if (m) document.getElementById('reference_month').value = m[1] + '-' + m[2];
                     ">
             </div>
-            <div>
+            {{-- Só a fatura do cartão de crédito tem mês de referência. O extrato do
+                 cartão de benefícios não, porque não existe fatura. --}}
+            <div id="campo-mes">
                 <label for="reference_month" class="block text-sm text-[var(--text-dim)] mb-1">Mês desta fatura</label>
-                <input type="month" id="reference_month" name="reference_month" value="{{ $defaultMonth }}" required
+                <input type="month" id="reference_month" name="reference_month" value="{{ $defaultMonth }}"
                     class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
                 <p class="text-xs text-[var(--text-mute)] mt-1">Preenchido automaticamente pelo nome do arquivo (ex: Fatura20260901 = setembro/2026) — confira antes de continuar.</p>
             </div>
@@ -116,4 +121,15 @@
             </button>
         </form>
     </div>
+
+    <script>
+        // Cartão de benefícios não tem fatura: esconde o mês de referência.
+        function grizzlyCardChanged(select) {
+            var option = select.options[select.selectedIndex];
+            var needsMonth = !option || option.dataset.needsMonth !== '0';
+            document.getElementById('campo-mes').classList.toggle('hidden', !needsMonth);
+        }
+
+        grizzlyCardChanged(document.getElementById('card_key'));
+    </script>
 @endsection

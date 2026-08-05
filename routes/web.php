@@ -38,6 +38,10 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/importar', [ImportController::class, 'index'])->name('import.index');
 
+    // Fatura do cartão de crédito e extrato do cartão de benefícios entram pelo
+    // mesmo formulário; o controller escolhe o parser pelo tipo do cartão.
+    Route::post('/importar/cartao/preview', [ImportController::class, 'previewCard'])->name('import.cartao.preview');
+
     Route::prefix('import/conta')->name('import.conta.')->group(function (): void {
         Route::post('/preview', [ContaImportController::class, 'preview'])->name('preview');
         Route::post('/commit', [ContaImportController::class, 'commit'])->name('commit');

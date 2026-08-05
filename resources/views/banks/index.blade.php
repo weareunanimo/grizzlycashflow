@@ -33,7 +33,10 @@
                 </div>
                 <div class="flex items-center gap-4 shrink-0">
                     <details class="relative">
-                        <summary class="list-none cursor-pointer text-sm text-[var(--accent)] hover:opacity-80 transition-opacity">Renomear</summary>
+                        <summary class="list-none cursor-pointer text-[var(--text)] hover:opacity-70 transition-opacity"
+                            role="button" aria-label="Editar nome da conta" title="Editar nome">
+                            @include('partials.icon-edit')
+                        </summary>
                         <form method="POST" action="{{ route('banks.update', $selected->id) }}"
                             class="absolute right-0 z-10 mt-2 w-72 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2">
                             @csrf
@@ -51,7 +54,10 @@
                         onsubmit="return confirm('Tem certeza que deseja excluir a conta \'{{ $selected->name }}\'? Todos os lançamentos relacionados a ela serão apagados permanentemente. Essa ação não pode ser desfeita.');">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="text-sm text-[var(--critical)] hover:opacity-80 transition-opacity">Excluir conta</button>
+                        <button type="submit" class="flex text-[var(--text)] hover:opacity-70 transition-opacity"
+                            aria-label="Excluir conta" title="Excluir conta">
+                            @include('partials.icon-trash')
+                        </button>
                     </form>
                 </div>
             </div>

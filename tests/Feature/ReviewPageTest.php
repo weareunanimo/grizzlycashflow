@@ -120,7 +120,7 @@ final class ReviewPageTest extends TestCase
         $this->makePurchase($this->secondCardId, 'COMPRA CARTAO DOIS');
 
         $this->actingAs($this->user)
-            ->get('/review?cards[]='.$this->cardId)
+            ->get('/review?cards[]=c'.$this->cardId)
             ->assertOk()
             ->assertSee('COMPRA CARTAO UM')
             ->assertDontSee('COMPRA CARTAO DOIS');
@@ -132,7 +132,7 @@ final class ReviewPageTest extends TestCase
         $this->makePurchase($this->cardId, 'COMPRA CARTAO UM');
 
         $this->actingAs($this->user)
-            ->get('/review?accounts[]='.$this->accountId.'&cards[]='.$this->cardId)
+            ->get('/review?accounts[]='.$this->accountId.'&cards[]=c'.$this->cardId)
             ->assertOk()
             ->assertSee('Compra na Conta Um')
             ->assertSee('COMPRA CARTAO UM');

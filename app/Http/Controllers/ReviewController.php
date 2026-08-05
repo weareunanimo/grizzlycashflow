@@ -44,26 +44,49 @@ final class ReviewController extends Controller
             RendimentoCategorizer::backfill($userId);
         }
 
+        // Contas bancárias de um lado; cartões (crédito e benefícios) do outro.
         $accounts = DB::table('accounts')
             ->where('user_id', $userId)
-            ->where('type', '!=', 'credit_card')
+            ->whereNotIn('type', ['credit_card', 'voucher'])
             ->whereNull('archived_at')
             ->orderBy('id')
             ->get(['id', 'name']);
 
-        $cards = DB::table('credit_cards')
-            ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
-            ->where('credit_cards.user_id', $userId)
-            ->orderBy('credit_cards.id')
-            ->get(['credit_cards.id', 'accounts.name as account_name']);
+        $cards = $this->cardFilterOptions($userId);
 
-        $selectedAccountIds = array_map('intval', (array) $request->query('accounts', []));
-        $selectedCardIds = array_map('intval', (array) $request->query('cards', []));
+        $selectedAccountIds = $this->validAccountIds($accounts, (array) $request->query('accounts', []));
+        $selectedCardKeys = $this->validCardKeys($cards, (array) $request->query('cards', []));
 
-        $rows = $this->pendingTransactions($userId, $selectedAccountIds)
-            ->concat($this->pendingPurchases($userId, $selectedCardIds))
-            ->sortByDesc('sort_key')
-            ->values();
+        // Cartão de benefícios não tem fatura: os lançamentos dele estão em
+        // `transactions`, então entram pelo filtro de conta, mas o usuário o
+        // seleciona como cartão. Por isso a chave carrega o tipo (c<id>/v<id>).
+        $creditCardIds = [];
+        $voucherAccountIds = [];
+
+        foreach ($selectedCardKeys as $key) {
+            if (str_starts_with($key, 'v')) {
+                $voucherAccountIds[] = (int) substr($key, 1);
+            } else {
+                $creditCardIds[] = (int) substr($key, 1);
+            }
+        }
+
+        $hasFilter = $selectedAccountIds !== [] || $selectedCardKeys !== [];
+        $transactionAccountIds = array_merge($selectedAccountIds, $voucherAccountIds);
+
+        // Sem filtro, mostra tudo. Com filtro, cada lado só entra se foi escolhido —
+        // antes o lado sem seleção passava inteiro, e conta e cartão devolviam o mesmo.
+        $rows = collect();
+
+        if (! $hasFilter || $transactionAccountIds !== []) {
+            $rows = $rows->concat($this->pendingTransactions($userId, $transactionAccountIds));
+        }
+
+        if (! $hasFilter || $creditCardIds !== []) {
+            $rows = $rows->concat($this->pendingPurchases($userId, $creditCardIds));
+        }
+
+        $rows = $rows->sortByDesc('sort_key')->values();
 
         $page = max(1, (int) $request->query('page', 1));
         $slice = $rows->forPage($page, self::PER_PAGE)->values();
@@ -94,8 +117,62 @@ final class ReviewController extends Controller
             'accounts' => $accounts,
             'cards' => $cards,
             'selectedAccountIds' => $selectedAccountIds,
-            'selectedCardIds' => $selectedCardIds,
+            'selectedCardKeys' => $selectedCardKeys,
         ]);
+    }
+
+    /**
+     * Cartões de crédito e de benefícios na mesma lista, cada um com uma chave
+     * que diz de onde vêm os lançamentos: c<credit_card_id> ou v<account_id>.
+     *
+     * @return Collection<int,object>
+     */
+    private function cardFilterOptions(int $userId): Collection
+    {
+        $credit = DB::table('credit_cards')
+            ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
+            ->where('credit_cards.user_id', $userId)
+            ->whereNull('accounts.archived_at')
+            ->orderBy('credit_cards.id')
+            ->get(['credit_cards.id', 'accounts.name as account_name'])
+            ->map(fn ($card) => (object) ['key' => 'c'.$card->id, 'name' => (string) $card->account_name]);
+
+        $vouchers = DB::table('accounts')
+            ->where('user_id', $userId)
+            ->where('type', 'voucher')
+            ->whereNull('archived_at')
+            ->orderBy('id')
+            ->get(['id', 'name'])
+            ->map(fn ($account) => (object) ['key' => 'v'.$account->id, 'name' => (string) $account->name]);
+
+        return $credit->concat($vouchers)->values();
+    }
+
+    /**
+     * Só aceita ids que o usuário realmente possui — um id colado na URL não
+     * pode virar uma consulta pelos dados de outra pessoa.
+     *
+     * @param  Collection<int,object>  $accounts
+     * @param  array<mixed>  $requested
+     * @return list<int>
+     */
+    private function validAccountIds(Collection $accounts, array $requested): array
+    {
+        $owned = $accounts->map(fn ($a) => (int) $a->id)->all();
+
+        return array_values(array_intersect(array_map('intval', $requested), $owned));
+    }
+
+    /**
+     * @param  Collection<int,object>  $cards
+     * @param  array<mixed>  $requested
+     * @return list<string>
+     */
+    private function validCardKeys(Collection $cards, array $requested): array
+    {
+        $owned = $cards->pluck('key')->all();
+
+        return array_values(array_intersect(array_map('strval', $requested), $owned));
     }
 
     public function store(Request $request, string $kind, int $id): RedirectResponse

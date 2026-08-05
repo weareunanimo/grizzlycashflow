@@ -219,7 +219,12 @@ final class ContaImportController extends Controller
         // existir também passa a ficar em Rendimentos.
         RendimentoCategorizer::backfill($userId);
 
-        return redirect()->route('banks.index', ['account' => $account->id])
+        // Extrato de cartão de benefícios volta para Cartões, que é onde ele vive.
+        $destination = $account->type === 'voucher'
+            ? route('cards.index', ['card' => 'v'.$account->id])
+            : route('banks.index', ['account' => $account->id]);
+
+        return redirect()->to($destination)
             ->with('status', "{$created} lançamentos importados, {$skipped} já existiam e foram ignorados.");
     }
 

@@ -15,7 +15,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 @if ($accounts->isNotEmpty())
                     <fieldset class="min-w-0">
-                        <legend class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Contas e benefícios</legend>
+                        <legend class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Contas</legend>
                         <div class="flex flex-wrap gap-x-5 gap-y-2">
                             @foreach ($accounts as $account)
                                 <label class="flex items-center gap-2 text-sm min-w-0">
@@ -31,14 +31,14 @@
 
                 @if ($cards->isNotEmpty())
                     <fieldset class="min-w-0">
-                        <legend class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Cartões</legend>
+                        <legend class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Cartões de crédito e de benefícios</legend>
                         <div class="flex flex-wrap gap-x-5 gap-y-2">
                             @foreach ($cards as $card)
                                 <label class="flex items-center gap-2 text-sm min-w-0">
-                                    <input type="checkbox" name="cards[]" value="{{ $card->id }}"
-                                        {{ in_array((int) $card->id, $selectedCardIds, true) ? 'checked' : '' }}
+                                    <input type="checkbox" name="cards[]" value="{{ $card->key }}"
+                                        {{ in_array($card->key, $selectedCardKeys, true) ? 'checked' : '' }}
                                         class="shrink-0 rounded border-[var(--border)] bg-[var(--surface-2)] text-[var(--accent)] focus:ring-[var(--accent)]">
-                                    <span class="truncate">{{ $card->account_name }}</span>
+                                    <span class="truncate">{{ $card->name }}</span>
                                 </label>
                             @endforeach
                         </div>
@@ -51,7 +51,7 @@
                     class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold px-4 py-2 text-sm hover:opacity-90 transition-opacity">
                     Filtrar
                 </button>
-                @if ($selectedAccountIds !== [] || $selectedCardIds !== [])
+                @if ($selectedAccountIds !== [] || $selectedCardKeys !== [])
                     <a href="{{ route('review.index') }}" class="text-sm text-[var(--text-dim)] underline">Limpar filtros</a>
                 @endif
                 <span class="text-xs text-[var(--text-mute)] ml-auto">
@@ -76,7 +76,7 @@
                 $suggestedName = $suggestedId !== null ? ($categoryNames[$suggestedId] ?? null) : null;
             @endphp
             <form method="POST"
-                action="{{ route('review.store', ['kind' => $row->kind, 'id' => $row->id, 'accounts' => $selectedAccountIds, 'cards' => $selectedCardIds]) }}"
+                action="{{ route('review.store', ['kind' => $row->kind, 'id' => $row->id, 'accounts' => $selectedAccountIds, 'cards' => $selectedCardKeys]) }}"
                 class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4">
                 @csrf
 

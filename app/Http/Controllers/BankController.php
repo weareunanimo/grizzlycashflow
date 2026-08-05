@@ -23,7 +23,8 @@ final class BankController extends Controller
         $accounts = DB::table('accounts')
             ->join('institutions', 'institutions.id', '=', 'accounts.institution_id')
             ->where('accounts.user_id', $userId)
-            ->where('accounts.type', '!=', 'credit_card')
+            // cartão de crédito e cartão de benefícios vivem na tela Cartões.
+            ->whereNotIn('accounts.type', ['credit_card', 'voucher'])
             ->whereNull('accounts.archived_at')
             ->select('accounts.*', 'institutions.name as institution_name')
             ->orderBy('accounts.id')

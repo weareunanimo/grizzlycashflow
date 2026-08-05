@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use Grizzly\Domain\Classification\MerchantDisplayName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -17,32 +18,39 @@ final class CreditCardController extends Controller
     {
         $userId = Auth::id();
 
-        $cards = DB::table('credit_cards')
-            ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
-            ->where('credit_cards.user_id', $userId)
-            ->select('credit_cards.*', 'accounts.name as account_name')
-            ->orderBy('credit_cards.id')
-            ->get()
-            ->map(function ($card) use ($userId) {
-                $card->open_total_cents = (int) DB::table('card_installments')
-                    ->where('credit_card_id', $card->id)
-                    ->where('user_id', $userId)
-                    ->whereIn('status', ['projected', 'billed'])
-                    ->sum('amount_cents');
+        $cards = $this->creditCards($userId)->concat($this->benefitCards($userId))->values();
 
-                return $card;
-            });
+        // A chave carrega o tipo ('c12' = cartão de crédito, 'v34' = benefícios).
+        // Um `?card=12` numérico continua valendo como cartão de crédito, para não
+        // quebrar os links antigos (redirect da importação de fatura, dashboard).
+        $requestedKey = (string) $request->query('card', '');
+        if ($requestedKey !== '' && ctype_digit($requestedKey)) {
+            $requestedKey = 'c'.$requestedKey;
+        }
 
-        $selectedId = (int) $request->query('card', $cards->first()->id ?? 0);
-        $selected = $cards->firstWhere('id', $selectedId) ?? $cards->first();
+        $selected = $cards->firstWhere('key', $requestedKey) ?? $cards->first();
 
         $tab = in_array($request->query('tab'), ['projecao', 'parcelamentos'], true) ? $request->query('tab') : 'compras';
 
         $purchases = null;
         $projection = null;
         $installmentPlans = null;
+        $rows = null;
 
-        if ($selected) {
+        if ($selected && $selected->card_type === 'voucher') {
+            $rows = DB::table('transactions')
+                ->leftJoin('categories', 'categories.id', '=', 'transactions.category_id')
+                ->where('transactions.account_id', $selected->account_id)
+                ->where('transactions.user_id', $userId)
+                ->whereNull('transactions.deleted_at')
+                ->orderByDesc('transactions.occurred_on')
+                ->orderByDesc('transactions.id')
+                ->select('transactions.*', 'categories.name as category_name')
+                ->paginate(50, pageName: 'page')
+                ->withQueryString();
+        }
+
+        if ($selected && $selected->card_type === 'credit') {
             $id = (int) $selected->id;
 
             $currentInstallment = DB::table('card_installments')
@@ -112,12 +120,76 @@ final class CreditCardController extends Controller
             'purchases' => $purchases,
             'projection' => $projection,
             'installmentPlans' => $installmentPlans,
+            'rows' => $rows,
         ]);
     }
 
-    public function destroy(int $id): RedirectResponse
+    /** @return Collection<int,object> */
+    private function creditCards(int $userId): Collection
+    {
+        return DB::table('credit_cards')
+            ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
+            ->where('credit_cards.user_id', $userId)
+            ->whereNull('accounts.archived_at')
+            ->select('credit_cards.*', 'accounts.name as account_name')
+            ->orderBy('credit_cards.id')
+            ->get()
+            ->map(function ($card) use ($userId) {
+                $card->card_type = 'credit';
+                $card->key = 'c'.$card->id;
+                $card->open_total_cents = (int) DB::table('card_installments')
+                    ->where('credit_card_id', $card->id)
+                    ->where('user_id', $userId)
+                    ->whereIn('status', ['projected', 'billed'])
+                    ->sum('amount_cents');
+
+                return $card;
+            });
+    }
+
+    /**
+     * Cartão de benefícios (accounts.type = 'voucher'): não tem fatura nem parcelas,
+     * então não existe linha em `credit_cards` — o que importa é o saldo disponível.
+     *
+     * @return Collection<int,object>
+     */
+    private function benefitCards(int $userId): Collection
+    {
+        return DB::table('accounts')
+            ->where('user_id', $userId)
+            ->where('type', 'voucher')
+            ->whereNull('archived_at')
+            ->orderBy('id')
+            ->get()
+            ->map(function ($account) use ($userId) {
+                $sums = DB::table('transactions')
+                    ->where('account_id', $account->id)
+                    ->where('user_id', $userId)
+                    ->whereNull('deleted_at')
+                    ->selectRaw("SUM(CASE WHEN direction = 'in' THEN amount_cents ELSE 0 END) as total_in")
+                    ->selectRaw("SUM(CASE WHEN direction = 'out' THEN amount_cents ELSE 0 END) as total_out")
+                    ->first();
+
+                return (object) [
+                    'id' => $account->id,
+                    'account_id' => $account->id,
+                    'account_name' => $account->name,
+                    'card_type' => 'voucher',
+                    'key' => 'v'.$account->id,
+                    'balance_cents' => (int) ($sums->total_in ?? 0) - (int) ($sums->total_out ?? 0),
+                ];
+            });
+    }
+
+    public function destroy(string $key): RedirectResponse
     {
         $userId = Auth::id();
+
+        if (str_starts_with($key, 'v')) {
+            return $this->destroyBenefitCard($userId, (int) substr($key, 1));
+        }
+
+        $id = (int) ltrim($key, 'c');
 
         $card = DB::table('credit_cards')
             ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
@@ -131,12 +203,41 @@ final class CreditCardController extends Controller
         }
 
         DB::transaction(function () use ($id, $userId, $card): void {
+            DB::table('transactions')->where('credit_card_id', $id)->where('user_id', $userId)->update(['credit_card_id' => null]);
             DB::table('card_installments')->where('credit_card_id', $id)->where('user_id', $userId)->delete();
             DB::table('card_purchases')->where('credit_card_id', $id)->where('user_id', $userId)->delete();
             DB::table('credit_cards')->where('id', $id)->where('user_id', $userId)->delete();
-            DB::table('accounts')->where('id', $card->account_id)->where('user_id', $userId)->delete();
+            $this->deleteAccountAndTransactions($userId, (int) $card->account_id);
         });
 
         return redirect()->route('cards.index')->with('status', "\"{$card->account_name}\" e todos os lançamentos dele foram apagados.");
+    }
+
+    private function destroyBenefitCard(int $userId, int $accountId): RedirectResponse
+    {
+        $account = DB::table('accounts')
+            ->where('id', $accountId)
+            ->where('user_id', $userId)
+            ->where('type', 'voucher')
+            ->first();
+
+        if (! $account) {
+            abort(404);
+        }
+
+        DB::transaction(fn () => $this->deleteAccountAndTransactions($userId, $accountId));
+
+        return redirect()->route('cards.index')->with('status', "\"{$account->name}\" e todos os lançamentos dele foram apagados.");
+    }
+
+    private function deleteAccountAndTransactions(int $userId, int $accountId): void
+    {
+        DB::table('transaction_tags')->whereIn('transaction_id', function ($q) use ($accountId, $userId): void {
+            $q->select('id')->from('transactions')->where('account_id', $accountId)->where('user_id', $userId);
+        })->delete();
+
+        DB::table('credit_cards')->where('payment_account_id', $accountId)->where('user_id', $userId)->update(['payment_account_id' => null]);
+        DB::table('transactions')->where('account_id', $accountId)->where('user_id', $userId)->delete();
+        DB::table('accounts')->where('id', $accountId)->where('user_id', $userId)->delete();
     }
 }

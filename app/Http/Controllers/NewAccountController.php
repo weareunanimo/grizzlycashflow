@@ -25,8 +25,10 @@ final class NewAccountController extends Controller
     {
         $userId = Auth::id();
 
+        // `voucher` = cartão de benefícios (alimentação/refeição/mobilidade): funciona
+        // por saldo, não gera fatura — então não pede limite, fechamento nem vencimento.
         $validated = $request->validate([
-            'kind' => ['required', 'in:checking,credit_card'],
+            'kind' => ['required', 'in:checking,credit_card,voucher'],
             'institution_name' => ['required', 'string', 'max:120'],
             'account_name' => ['required', 'string', 'max:120'],
             'brand' => ['nullable', 'string', 'max:20'],
@@ -44,7 +46,7 @@ final class NewAccountController extends Controller
             $institutionId = DB::table('institutions')->insertGetId([
                 'user_id' => $userId,
                 'name' => $validated['institution_name'],
-                'kind' => $validated['kind'] === 'credit_card' ? 'card_issuer' : 'bank',
+                'kind' => in_array($validated['kind'], ['credit_card', 'voucher'], true) ? 'card_issuer' : 'bank',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -78,6 +80,11 @@ final class NewAccountController extends Controller
             ]);
         }
 
-        return redirect()->route('dashboard')->with('status', "\"{$validated['account_name']}\" cadastrado. Já dá para importar extrato/fatura.");
+        $destination = match ($validated['kind']) {
+            'credit_card', 'voucher' => route('cards.index'),
+            default => route('banks.index'),
+        };
+
+        return redirect()->to($destination)->with('status', "\"{$validated['account_name']}\" cadastrado. Já dá para importar extrato/fatura.");
     }
 }

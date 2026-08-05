@@ -16,7 +16,7 @@
         <div class="flex flex-wrap gap-[1px] mb-6 text-sm bg-[var(--surface-1)] border border-[var(--border)] rounded-lg p-1 w-fit max-w-full">
             @foreach ($accounts as $account)
                 <a href="{{ route('banks.index', ['account' => $account->id]) }}"
-                    class="px-4 py-2 rounded-md transition-colors whitespace-nowrap {{ $selected && $selected->id === $account->id ? 'bg-[var(--surface-2)] text-[var(--text)] font-medium' : 'text-[var(--text-dim)]' }}">
+                    class="px-4 py-2 rounded-md transition-colors whitespace-nowrap {{ $selected && (int) $selected->id === (int) $account->id ? 'bg-[var(--surface-2)] text-[var(--text)] font-medium' : 'text-[var(--text-dim)]' }}">
                     {{ $account->name }}
                 </a>
             @endforeach

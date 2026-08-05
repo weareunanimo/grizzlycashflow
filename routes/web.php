@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/bancos', [BankController::class, 'index'])->name('banks.index');
     Route::delete('/bancos/{id}', [BankController::class, 'destroy'])->name('banks.destroy');
     Route::get('/cartoes', [CreditCardController::class, 'index'])->name('cards.index');
-    Route::delete('/cartoes/{id}', [CreditCardController::class, 'destroy'])->name('cards.destroy');
+    Route::delete('/cartoes/{key}', [CreditCardController::class, 'destroy'])->name('cards.destroy');
 
     Route::get('/accounts/new', [NewAccountController::class, 'create'])->name('accounts.create');
     Route::post('/accounts', [NewAccountController::class, 'store'])->name('accounts.store');

@@ -18,7 +18,7 @@ final class DashboardController extends Controller
         $accounts = DB::table('accounts')
             ->join('institutions', 'institutions.id', '=', 'accounts.institution_id')
             ->where('accounts.user_id', $user->id)
-            ->where('accounts.type', '!=', 'credit_card')
+            ->whereNotIn('accounts.type', ['credit_card', 'voucher'])
             ->whereNull('accounts.archived_at')
             ->select('accounts.*', 'institutions.name as institution_name')
             ->get()
@@ -76,10 +76,42 @@ final class DashboardController extends Controller
                 return $card;
             });
 
+        // Cartão de benefícios não tem fatura: o que importa é o saldo e os últimos lançamentos.
+        $benefitCards = DB::table('accounts')
+            ->join('institutions', 'institutions.id', '=', 'accounts.institution_id')
+            ->where('accounts.user_id', $user->id)
+            ->where('accounts.type', 'voucher')
+            ->whereNull('accounts.archived_at')
+            ->select('accounts.*', 'institutions.name as institution_name')
+            ->get()
+            ->map(function ($account) use ($user) {
+                $sums = DB::table('transactions')
+                    ->where('account_id', $account->id)
+                    ->where('user_id', $user->id)
+                    ->whereNull('deleted_at')
+                    ->selectRaw("SUM(CASE WHEN direction = 'in' THEN amount_cents ELSE 0 END) as total_in")
+                    ->selectRaw("SUM(CASE WHEN direction = 'out' THEN amount_cents ELSE 0 END) as total_out")
+                    ->first();
+
+                $account->balance_cents = (int) ($sums->total_in ?? 0) - (int) ($sums->total_out ?? 0);
+
+                $account->recent = DB::table('transactions')
+                    ->where('account_id', $account->id)
+                    ->where('user_id', $user->id)
+                    ->whereNull('deleted_at')
+                    ->orderByDesc('occurred_on')
+                    ->orderByDesc('id')
+                    ->limit(5)
+                    ->get();
+
+                return $account;
+            });
+
         return view('dashboard.index', [
             'user' => $user,
             'accounts' => $accounts,
             'creditCards' => $creditCards,
+            'benefitCards' => $benefitCards,
             'categoryCount' => DB::table('categories')->where('user_id', $user->id)->count(),
             'ruleCount' => DB::table('rules')->where('user_id', $user->id)->count(),
         ]);

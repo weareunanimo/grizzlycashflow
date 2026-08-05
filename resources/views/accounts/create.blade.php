@@ -12,10 +12,11 @@
             <div>
                 <label class="block text-sm text-[var(--text-dim)] mb-1">Tipo</label>
                 <div class="relative">
-                    <select name="kind" id="kind" required onchange="document.getElementById('card-fields').classList.toggle('hidden', this.value !== 'credit_card')"
+                    <select name="kind" id="kind" required onchange="grizzlyKindChanged(this.value)"
                         class="w-full appearance-none rounded-md bg-[var(--surface-2)] border border-[var(--border)] pl-3 pr-9 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
                         <option value="checking">Conta corrente</option>
                         <option value="credit_card">Cartão de crédito</option>
+                        <option value="voucher">Cartão de benefícios (alimentação, refeição, mobilidade)</option>
                     </select>
                     <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6" />
@@ -25,15 +26,21 @@
 
             <div>
                 <label for="institution_name" class="block text-sm text-[var(--text-dim)] mb-1">Instituição</label>
-                <input type="text" id="institution_name" name="institution_name" required placeholder="Ex: Caju"
+                <input type="text" id="institution_name" name="institution_name" required placeholder="Ex.: Banco NASA S.A."
                     class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
             </div>
 
             <div>
                 <label for="account_name" class="block text-sm text-[var(--text-dim)] mb-1">Nome (como quer ver na lista)</label>
-                <input type="text" id="account_name" name="account_name" required placeholder="Ex: Cartão Caju"
+                <input type="text" id="account_name" name="account_name" required placeholder="Ex.: NASA"
                     class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
             </div>
+
+            <p id="voucher-hint" class="hidden text-xs text-[var(--text-mute)]">
+                Cartão de benefícios funciona por saldo/crédito disponível e não gera fatura —
+                por isso não pedimos limite, dia de fechamento nem vencimento. Os lançamentos
+                dele entram pela importação de extrato.
+            </p>
 
             <div id="card-fields" class="hidden space-y-4">
                 <div>
@@ -78,4 +85,19 @@
             </button>
         </form>
     </div>
+
+    <script>
+        // Só o cartão de crédito tem limite/fechamento/vencimento. Os exemplos de
+        // preenchimento também mudam entre banco e cartão.
+        function grizzlyKindChanged(kind) {
+            document.getElementById('card-fields').classList.toggle('hidden', kind !== 'credit_card');
+            document.getElementById('voucher-hint').classList.toggle('hidden', kind !== 'voucher');
+
+            var isCard = kind === 'credit_card' || kind === 'voucher';
+            document.getElementById('institution_name').placeholder = isCard ? 'Ex.: Banco WTF S.A.' : 'Ex.: Banco NASA S.A.';
+            document.getElementById('account_name').placeholder = isCard ? 'Ex.: WTF' : 'Ex.: NASA';
+        }
+
+        grizzlyKindChanged(document.getElementById('kind').value);
+    </script>
 @endsection

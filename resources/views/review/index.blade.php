@@ -25,12 +25,12 @@
 
             @if ($accounts->isNotEmpty())
                 <div>
-                    <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Contas</p>
+                    <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Contas e benefícios</p>
                     <div class="flex flex-col gap-1">
                         @foreach ($accounts as $account)
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="checkbox" name="accounts[]" value="{{ $account->id }}"
-                                    {{ in_array($account->id, $selectedAccountIds, true) ? 'checked' : '' }}
+                                    {{ in_array((int) $account->id, $selectedAccountIds, true) ? 'checked' : '' }}
                                     class="rounded border-[var(--border)] bg-[var(--surface-2)] text-[var(--accent)] focus:ring-[var(--accent)]">
                                 {{ $account->name }}
                             </label>
@@ -46,7 +46,7 @@
                         @foreach ($cards as $card)
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="checkbox" name="cards[]" value="{{ $card->id }}"
-                                    {{ in_array($card->id, $selectedCardIds, true) ? 'checked' : '' }}
+                                    {{ in_array((int) $card->id, $selectedCardIds, true) ? 'checked' : '' }}
                                     class="rounded border-[var(--border)] bg-[var(--surface-2)] text-[var(--accent)] focus:ring-[var(--accent)]">
                                 {{ $card->account_name }}
                             </label>

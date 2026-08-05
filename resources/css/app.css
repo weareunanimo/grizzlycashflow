@@ -10,6 +10,10 @@
 
 /* Design tokens — docs/08-ux.md (dark = padrão) */
 :root {
+    /* Faz o navegador desenhar os controles nativos no tema escuro — sem isso o
+       ícone de calendário do <input type="month"> sai preto sobre fundo escuro. */
+    color-scheme: dark;
+
     --bg: #0B0F14;
     --surface-1: #131A22;
     --surface-2: #1B242E;

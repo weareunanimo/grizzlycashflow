@@ -117,6 +117,16 @@ final class ReviewQueue
     }
 
     /**
+     * Mesma regra do `pendingCondition`, para uma linha já carregada: é o que
+     * decide o bullet amarelo no extrato e na fatura. Ficar em dois lugares
+     * diferentes foi justamente o que fez o cartão não mostrar o marcador.
+     */
+    public static function isPending(object $row): bool
+    {
+        return ($row->category_id ?? null) === null || (bool) ($row->needs_review ?? false);
+    }
+
+    /**
      * @param  list<int>  $accountIds
      * @return Collection<int,object>
      */

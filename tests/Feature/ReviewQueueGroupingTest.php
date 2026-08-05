@@ -86,6 +86,33 @@ final class ReviewQueueGroupingTest extends TestCase
             ->assertDontSee('AliExpress');
     }
 
+    /**
+     * O bullet amarelo segue a mesma regra da fila. Como a flag estava desligada
+     * nessas compras, a fatura não marcava nada mesmo com a categoria vazia.
+     */
+    public function test_the_card_invoice_shows_the_dot_for_items_without_category(): void
+    {
+        $this->purchase('TONITOYS', needsReview: false, categoryId: null);
+        $this->purchase('ALIEXPRESS', needsReview: false, categoryId: $this->categoryId('Compras'));
+
+        $response = $this->actingAs($this->user)->get('/cartoes?card=c'.$this->cardId)->assertOk();
+
+        // um bullet só: o da compra sem categoria
+        $this->assertSame(1, substr_count($response->getContent(), 'Precisa de revisão'));
+        $response->assertSee('Tonitoys');
+        $response->assertSee('AliExpress');
+    }
+
+    public function test_the_bank_statement_shows_the_dot_for_items_without_category(): void
+    {
+        $this->transaction('MAGIC GAMES', needsReview: false, categoryId: null);
+        $this->transaction('CELESC DISTRIBUICAO', needsReview: false, categoryId: $this->categoryId('Energia'));
+
+        $response = $this->actingAs($this->user)->get('/bancos?account='.$this->accountId)->assertOk();
+
+        $this->assertSame(1, substr_count($response->getContent(), 'Precisa de revisão'));
+    }
+
     /** Mesmo estabelecimento com sufixo diferente é um grupo só. */
     public function test_equivalent_items_are_shown_as_a_single_representative(): void
     {

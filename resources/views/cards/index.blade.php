@@ -94,7 +94,7 @@
                                         <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($tx->occurred_on)->format('d/m/Y') }}</td>
                                         <td class="whitespace-nowrap">
                                             {{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($tx->description) }}
-                                            @if ($tx->needs_review)
+                                            @if (\App\Support\ReviewQueue::isPending($tx))
                                                 @include('partials.review-dot')
                                             @endif
                                         </td>
@@ -147,13 +147,13 @@
                                         <td class="whitespace-nowrap">
                                             {{ $purchase->purchase_date ? \Illuminate\Support\Carbon::parse($purchase->purchase_date)->format('d/m/Y') : '—' }}
                                         </td>
-                                        <td class="whitespace-nowrap">{{ $purchase->display_name }}</td>
-                                        <td class="text-[var(--text-dim)]">
-                                            {{ $purchase->category_name ?? '—' }}
-                                            @if ($purchase->needs_review)
+                                        <td class="whitespace-nowrap">
+                                            {{ $purchase->display_name }}
+                                            @if (\App\Support\ReviewQueue::isPending($purchase))
                                                 @include('partials.review-dot')
                                             @endif
                                         </td>
+                                        <td class="text-[var(--text-dim)]">{{ $purchase->category_name ?? '—' }}</td>
                                         <td class="text-[var(--text-dim)]">
                                             {{ $purchase->current_number ?? 1 }}/{{ $purchase->installments_total }}x
                                         </td>

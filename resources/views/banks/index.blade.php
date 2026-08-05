@@ -85,7 +85,7 @@
                                         <td class="whitespace-nowrap">{{ \Illuminate\Support\Carbon::parse($tx->occurred_on)->format('d/m/Y') }}</td>
                                         <td class="whitespace-nowrap">
                                             {{ \Grizzly\Domain\Classification\DescriptionCleaner::forDisplay($tx->description) }}
-                                            @if ($tx->needs_review)
+                                            @if (\App\Support\ReviewQueue::isPending($tx))
                                                 @include('partials.review-dot')
                                             @endif
                                         </td>

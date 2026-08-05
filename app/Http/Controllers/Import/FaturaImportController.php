@@ -28,7 +28,6 @@ use Illuminate\View\View;
  */
 final class FaturaImportController extends Controller
 {
-
     public function preview(Request $request): View|RedirectResponse
     {
         $validated = $request->validate([
@@ -40,22 +39,22 @@ final class FaturaImportController extends Controller
         $userId = Auth::id();
         $card = DB::table('credit_cards')->where('id', $validated['credit_card_id'])->where('user_id', $userId)->first();
 
-        if (!$card) {
+        if (! $card) {
             abort(404);
         }
 
         $contents = file_get_contents($request->file('file')->getRealPath());
-        $tmpPath = 'tmp/' . Str::uuid() . '.csv';
+        $tmpPath = 'tmp/'.Str::uuid().'.csv';
         Storage::put($tmpPath, $contents);
 
         $request->session()->put('import.fatura', [
             'path' => $tmpPath,
             'credit_card_id' => $card->id,
-            'reference_month' => $validated['reference_month'] . '-01',
+            'reference_month' => $validated['reference_month'].'-01',
             'original_name' => $request->file('file')->getClientOriginalName(),
         ]);
 
-        $rows = $this->parseAndAnnotate($contents, (int) $card->id, $userId, $validated['reference_month'] . '-01');
+        $rows = $this->parseAndAnnotate($contents, (int) $card->id, $userId, $validated['reference_month'].'-01');
 
         return view('import.fatura-preview', [
             'card' => $card,
@@ -72,14 +71,14 @@ final class FaturaImportController extends Controller
         $userId = Auth::id();
         $pending = $request->session()->get('import.fatura');
 
-        if (!$pending) {
+        if (! $pending) {
             return redirect()->route('import.index')->withErrors(['file' => 'Sessão de importação expirou, envie o arquivo de novo.']);
         }
 
         $contents = Storage::get($pending['path']);
         $card = DB::table('credit_cards')->where('id', $pending['credit_card_id'])->where('user_id', $userId)->first();
 
-        if (!$card || $contents === null) {
+        if (! $card || $contents === null) {
             return redirect()->route('import.index')->withErrors(['file' => 'Não achei mais o arquivo enviado, envie de novo.']);
         }
 
@@ -91,7 +90,7 @@ final class FaturaImportController extends Controller
 
         $documentId = $existingDoc->id ?? null;
         if ($documentId === null) {
-            $storagePath = 'uploads/' . $sha256 . '.csv';
+            $storagePath = 'uploads/'.$sha256.'.csv';
             Storage::put($storagePath, $contents);
 
             $documentId = DB::table('documents')->insertGetId([
@@ -136,6 +135,7 @@ final class FaturaImportController extends Controller
                         'updated_at' => now(),
                     ]);
                 $confirmed++;
+
                 continue;
             }
 
@@ -188,7 +188,7 @@ final class FaturaImportController extends Controller
         Storage::delete($pending['path']);
         $request->session()->forget('import.fatura');
 
-        return redirect()->route('cards.show', $card->id)
+        return redirect()->route('cards.index', ['card' => $card->id])
             ->with('status', "{$created} compras novas, {$confirmed} parcelas projetadas confirmadas nesta fatura.");
     }
 
@@ -201,6 +201,7 @@ final class FaturaImportController extends Controller
         foreach ($parsed as $row) {
             if ($row['is_payment']) {
                 $rows[] = array_merge($row, ['decision' => 'ignorado', 'amount_cents' => $row['amount']->cents()]);
+
                 continue;
             }
 

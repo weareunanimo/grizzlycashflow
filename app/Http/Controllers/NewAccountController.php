@@ -40,7 +40,7 @@ final class NewAccountController extends Controller
             ->where('name', $validated['institution_name'])
             ->value('id');
 
-        if (!$institutionId) {
+        if (! $institutionId) {
             $institutionId = DB::table('institutions')->insertGetId([
                 'user_id' => $userId,
                 'name' => $validated['institution_name'],

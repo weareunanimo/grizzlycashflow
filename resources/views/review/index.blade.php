@@ -18,10 +18,59 @@
         @endforeach
     </div>
 
+    @if ($accounts->isNotEmpty() || $cards->isNotEmpty())
+        <form method="GET" action="{{ route('review.index') }}"
+            class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 mb-6 flex flex-wrap items-start gap-6">
+            <input type="hidden" name="type" value="{{ $type }}">
+
+            @if ($accounts->isNotEmpty())
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Contas</p>
+                    <div class="flex flex-col gap-1">
+                        @foreach ($accounts as $account)
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" name="accounts[]" value="{{ $account->id }}"
+                                    {{ in_array($account->id, $selectedAccountIds, true) ? 'checked' : '' }}
+                                    class="rounded border-[var(--border)] bg-[var(--surface-2)] text-[var(--accent)] focus:ring-[var(--accent)]">
+                                {{ $account->name }}
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            @if ($cards->isNotEmpty())
+                <div>
+                    <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-2">Cartões</p>
+                    <div class="flex flex-col gap-1">
+                        @foreach ($cards as $card)
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" name="cards[]" value="{{ $card->id }}"
+                                    {{ in_array($card->id, $selectedCardIds, true) ? 'checked' : '' }}
+                                    class="rounded border-[var(--border)] bg-[var(--surface-2)] text-[var(--accent)] focus:ring-[var(--accent)]">
+                                {{ $card->account_name }}
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <div class="self-end">
+                <button type="submit"
+                    class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold px-4 py-2 text-sm hover:opacity-90 transition-opacity whitespace-nowrap">
+                    Filtrar
+                </button>
+                @if ($selectedAccountIds !== [] || $selectedCardIds !== [])
+                    <a href="{{ route('review.index', ['type' => $type]) }}" class="ml-2 text-sm text-[var(--text-dim)] underline">Limpar</a>
+                @endif
+            </div>
+        </form>
+    @endif
+
     <div class="space-y-3">
         @forelse ($pending as $row)
             @php($key = $row->kind . '-' . $row->id)
-            <form method="POST" action="{{ route('review.store', ['kind' => $row->kind, 'id' => $row->id, 'type' => $type]) }}"
+            <form method="POST" action="{{ route('review.store', ['kind' => $row->kind, 'id' => $row->id, 'type' => $type, 'accounts' => $selectedAccountIds, 'cards' => $selectedCardIds]) }}"
                 class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3">
                 @csrf
                 <div class="flex-1 min-w-0">

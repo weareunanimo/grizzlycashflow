@@ -53,7 +53,7 @@ final class XpContaCsvParser
      * O XP exporta do mais recente para o mais antigo: saldo[i] == saldo[i+1] + valor[i].
      * Retorna os índices onde a cadeia quebra (vazio = arquivo íntegro, docs/13 §1.1).
      *
-     * @param list<array{amount:Money,balance:Money}> $rows
+     * @param  list<array{amount:Money,balance:Money}>  $rows
      * @return list<int>
      */
     public static function validateBalanceChain(array $rows): array
@@ -61,7 +61,7 @@ final class XpContaCsvParser
         $breaks = [];
         for ($i = 0; $i < count($rows) - 1; $i++) {
             $expected = $rows[$i + 1]['balance']->add($rows[$i]['amount']);
-            if (!$expected->equals($rows[$i]['balance'])) {
+            if (! $expected->equals($rows[$i]['balance'])) {
                 $breaks[] = $i;
             }
         }

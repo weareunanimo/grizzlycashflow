@@ -18,26 +18,26 @@ use InvalidArgumentException;
 final class Ulid
 {
     private const ENCODING = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+
     private const TIME_LEN = 10;
+
     private const RANDOM_LEN = 16;
 
-    private function __construct(private readonly string $value)
-    {
-    }
+    private function __construct(private readonly string $value) {}
 
     public static function generate(?Clock $clock = null): self
     {
-        $clock = $clock ?? new SystemClock();
+        $clock = $clock ?? new SystemClock;
         $timestampMs = (int) ($clock->now()->format('Uv'));
 
-        return new self(self::encodeTime($timestampMs) . self::encodeRandom());
+        return new self(self::encodeTime($timestampMs).self::encodeRandom());
     }
 
     public static function fromString(string $value): self
     {
         $value = strtoupper($value);
 
-        if (!preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/', $value)) {
+        if (! preg_match('/^[0-9A-HJKMNP-TV-Z]{26}$/', $value)) {
             throw new InvalidArgumentException("ULID inválido: \"{$value}\".");
         }
 
@@ -59,7 +59,7 @@ final class Ulid
         $encoded = '';
         for ($i = self::TIME_LEN - 1; $i >= 0; $i--) {
             $mod = $timestampMs % 32;
-            $encoded = self::ENCODING[$mod] . $encoded;
+            $encoded = self::ENCODING[$mod].$encoded;
             $timestampMs = intdiv($timestampMs, 32);
         }
 

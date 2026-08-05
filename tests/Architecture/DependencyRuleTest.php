@@ -21,7 +21,7 @@ use SplFileInfo;
  */
 final class DependencyRuleTest extends TestCase
 {
-    private const SRC_ROOT = __DIR__ . '/../../src';
+    private const SRC_ROOT = __DIR__.'/../../src';
 
     /** Prefixos de `use` proibidos em Domain/ e Application/. */
     private const FORBIDDEN_IN_CORE = [
@@ -75,7 +75,7 @@ final class DependencyRuleTest extends TestCase
         self::assertSame(
             [],
             $violations,
-            "Infrastructure/ não pode depender de Http/ (a dependência aponta para dentro):\n" . implode("\n", $violations)
+            "Infrastructure/ não pode depender de Http/ (a dependência aponta para dentro):\n".implode("\n", $violations)
         );
     }
 
@@ -94,9 +94,9 @@ final class DependencyRuleTest extends TestCase
             }
 
             foreach (self::FORBIDDEN_IN_CORE as $forbidden) {
-                $pattern = '/^use\s+' . preg_quote($forbidden, '/') . '/m';
-                if (preg_match($pattern, $content) || str_contains($content, '\\' . $forbidden)) {
-                    $violations[] = $this->relativePath($file) . " → \"{$forbidden}\"";
+                $pattern = '/^use\s+'.preg_quote($forbidden, '/').'/m';
+                if (preg_match($pattern, $content) || str_contains($content, '\\'.$forbidden)) {
+                    $violations[] = $this->relativePath($file)." → \"{$forbidden}\"";
                 }
             }
         }
@@ -104,7 +104,7 @@ final class DependencyRuleTest extends TestCase
         self::assertSame(
             [],
             $violations,
-            "{$module}/ deve ser PHP puro (ADR-0001/ADR-0005). Violações encontradas:\n" . implode("\n", $violations)
+            "{$module}/ deve ser PHP puro (ADR-0001/ADR-0005). Violações encontradas:\n".implode("\n", $violations)
         );
     }
 
@@ -126,8 +126,8 @@ final class DependencyRuleTest extends TestCase
                     if (str_starts_with($trimmed, '*') || str_starts_with($trimmed, '//')) {
                         continue;
                     }
-                    if (str_contains($line, $fn) && !str_contains($line, '::' . $fn) && !str_contains($line, '->' . $fn)) {
-                        $violations[] = $this->relativePath($file) . ':' . ($lineNo + 1) . " → \"{$fn}\" (use Clock em vez disso)";
+                    if (str_contains($line, $fn) && ! str_contains($line, '::'.$fn) && ! str_contains($line, '->'.$fn)) {
+                        $violations[] = $this->relativePath($file).':'.($lineNo + 1)." → \"{$fn}\" (use Clock em vez disso)";
                     }
                 }
             }
@@ -136,16 +136,16 @@ final class DependencyRuleTest extends TestCase
         self::assertSame(
             [],
             $violations,
-            "{$module}/ nunca deve chamar date/time diretamente — injete Grizzly\\Support\\Clock:\n" . implode("\n", $violations)
+            "{$module}/ nunca deve chamar date/time diretamente — injete Grizzly\\Support\\Clock:\n".implode("\n", $violations)
         );
     }
 
     /** @return list<SplFileInfo> */
     private function phpFilesIn(string $module): array
     {
-        $dir = self::SRC_ROOT . '/' . $module;
+        $dir = self::SRC_ROOT.'/'.$module;
 
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return [];
         }
 
@@ -162,6 +162,6 @@ final class DependencyRuleTest extends TestCase
 
     private function relativePath(SplFileInfo $file): string
     {
-        return str_replace(realpath(self::SRC_ROOT . '/..') . '/', '', $file->getPathname());
+        return str_replace(realpath(self::SRC_ROOT.'/..').'/', '', $file->getPathname());
     }
 }

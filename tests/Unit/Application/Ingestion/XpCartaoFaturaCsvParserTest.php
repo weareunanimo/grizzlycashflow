@@ -12,7 +12,7 @@ final class XpCartaoFaturaCsvParserTest extends TestCase
     private function fixture(): string
     {
         return file_get_contents(
-            dirname(__DIR__, 3) . '/Fixtures/csv/xp_visa_black_fatura_2026-09_aberta.csv'
+            dirname(__DIR__, 3).'/Fixtures/csv/xp_visa_black_fatura_2026-09_aberta.csv'
         );
     }
 

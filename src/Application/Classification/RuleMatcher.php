@@ -11,7 +11,7 @@ namespace Grizzly\Application\Classification;
 final class RuleMatcher
 {
     /**
-     * @param list<array{conditions: array, actions: array}> $rulesByPriorityDesc
+     * @param  list<array{conditions: array, actions: array}>  $rulesByPriorityDesc
      */
     public static function match(string $description, array $rulesByPriorityDesc): ?int
     {
@@ -42,7 +42,7 @@ final class RuleMatcher
 
         if (isset($conditions['all'])) {
             foreach ($conditions['all'] as $condition) {
-                if (!self::conditionMatches($condition, $haystack)) {
+                if (! self::conditionMatches($condition, $haystack)) {
                     return false;
                 }
             }

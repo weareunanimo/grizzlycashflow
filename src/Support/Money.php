@@ -17,8 +17,7 @@ final class Money
     private function __construct(
         private readonly int $cents,
         private readonly string $currency,
-    ) {
-    }
+    ) {}
 
     public static function fromCents(int $cents, string $currency = 'BRL'): self
     {
@@ -28,13 +27,13 @@ final class Money
     }
 
     /**
-     * @param numeric-string $decimal Ex.: "1234.56" ou "1234,56"
+     * @param  numeric-string  $decimal  Ex.: "1234.56" ou "1234,56"
      */
     public static function fromDecimalString(string $decimal, string $currency = 'BRL'): self
     {
         $normalized = str_replace(',', '.', trim($decimal));
 
-        if (!preg_match('/^-?\d+(\.\d{1,2})?$/', $normalized)) {
+        if (! preg_match('/^-?\d+(\.\d{1,2})?$/', $normalized)) {
             throw new InvalidArgumentException("Valor decimal inválido: \"{$decimal}\"");
         }
 
@@ -193,7 +192,7 @@ final class Money
 
     private static function assertCurrency(string $currency): void
     {
-        if (!preg_match('/^[A-Za-z]{3}$/', $currency)) {
+        if (! preg_match('/^[A-Za-z]{3}$/', $currency)) {
             throw new InvalidArgumentException("Código de moeda inválido: \"{$currency}\".");
         }
     }

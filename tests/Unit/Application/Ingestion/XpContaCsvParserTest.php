@@ -12,7 +12,7 @@ final class XpContaCsvParserTest extends TestCase
     private function fixture(): string
     {
         return file_get_contents(
-            dirname(__DIR__, 3) . '/Fixtures/csv/xp_conta_2026-06-05_a_2026-08-04.csv'
+            dirname(__DIR__, 3).'/Fixtures/csv/xp_conta_2026-06-05_a_2026-08-04.csv'
         );
     }
 

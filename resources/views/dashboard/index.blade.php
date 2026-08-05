@@ -29,7 +29,7 @@
         <div class="space-y-4">
             @foreach ($accounts as $account)
                 <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden">
-                    <a href="{{ route('accounts.show', $account->id) }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-4 hover:bg-[var(--surface-2)] transition-colors">
+                    <a href="{{ route('banks.index', ['account' => $account->id]) }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-4 hover:bg-[var(--surface-2)] transition-colors">
                         <div class="min-w-0">
                             <p class="font-medium truncate">{{ $account->name }}</p>
                             <p class="text-xs text-[var(--text-dim)] truncate">{{ $account->institution_name }} · {{ $account->type }}</p>
@@ -67,7 +67,7 @@
         <div class="space-y-4">
             @forelse ($creditCards as $card)
                 <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl overflow-hidden">
-                    <a href="{{ route('cards.show', $card->id) }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-4 hover:bg-[var(--surface-2)] transition-colors">
+                    <a href="{{ route('cards.index', ['card' => $card->id]) }}" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-4 sm:px-5 py-4 hover:bg-[var(--surface-2)] transition-colors">
                         <div class="min-w-0">
                             <p class="font-medium truncate">{{ $card->account_name }}</p>
                             <p class="text-xs text-[var(--text-dim)] truncate">

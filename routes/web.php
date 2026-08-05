@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\ClosingController;
@@ -23,12 +22,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/bancos', [BankController::class, 'index'])->name('banks.index');
+    Route::delete('/bancos/{id}', [BankController::class, 'destroy'])->name('banks.destroy');
     Route::get('/cartoes', [CreditCardController::class, 'index'])->name('cards.index');
+    Route::delete('/cartoes/{id}', [CreditCardController::class, 'destroy'])->name('cards.destroy');
 
     Route::get('/accounts/new', [NewAccountController::class, 'create'])->name('accounts.create');
     Route::post('/accounts', [NewAccountController::class, 'store'])->name('accounts.store');
-    Route::get('/accounts/{id}', [AccountController::class, 'show'])->name('accounts.show');
-    Route::get('/cards/{id}', [CreditCardController::class, 'show'])->name('cards.show');
 
     Route::get('/review', [ReviewController::class, 'index'])->name('review.index');
     Route::post('/review/{kind}/{id}', [ReviewController::class, 'store'])->name('review.store');

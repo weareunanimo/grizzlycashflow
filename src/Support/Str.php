@@ -12,9 +12,7 @@ namespace Grizzly\Support;
  */
 final class Str
 {
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /** Minúsculas, sem acento, espaços colapsados, aparado. */
     public static function normalize(string $value): string
@@ -78,7 +76,7 @@ final class Str
     /** @return list<string> */
     private static function trigrams(string $value): array
     {
-        $padded = '  ' . $value . ' '; // padding ajuda a pesar início/fim da string
+        $padded = '  '.$value.' '; // padding ajuda a pesar início/fim da string
         $length = mb_strlen($padded);
 
         if ($length < 3) {

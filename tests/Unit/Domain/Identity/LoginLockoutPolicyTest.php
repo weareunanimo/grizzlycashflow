@@ -11,11 +11,12 @@ use PHPUnit\Framework\TestCase;
 final class LoginLockoutPolicyTest extends TestCase
 {
     private LoginLockoutPolicy $policy;
+
     private DateTimeImmutable $lastFailure;
 
     protected function setUp(): void
     {
-        $this->policy = new LoginLockoutPolicy();
+        $this->policy = new LoginLockoutPolicy;
         $this->lastFailure = new DateTimeImmutable('2026-08-04 12:00:00');
     }
 

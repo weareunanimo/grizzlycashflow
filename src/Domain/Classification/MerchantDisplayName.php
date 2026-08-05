@@ -56,18 +56,18 @@ final class MerchantDisplayName
         $upper = strtoupper(trim($rawDescription));
 
         foreach (self::PREFIX_RULES as [$prefix, $brand, $showDetail]) {
-            if (!str_starts_with($upper, $prefix)) {
+            if (! str_starts_with($upper, $prefix)) {
                 continue;
             }
 
-            if (!$showDetail) {
+            if (! $showDetail) {
                 return $brand;
             }
 
             $rest = MerchantNormalizer::key(ltrim(substr($upper, strlen($prefix)), " \t*"));
 
-            return $rest !== '' && !in_array($rest, self::MEANINGLESS_REMAINDER, true)
-                ? $brand . ' - ' . self::titleCase($rest)
+            return $rest !== '' && ! in_array($rest, self::MEANINGLESS_REMAINDER, true)
+                ? $brand.' - '.self::titleCase($rest)
                 : $brand;
         }
 

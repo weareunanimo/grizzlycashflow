@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'dev@grizzlycashflow.test',
         ]);
 
-        (new CategorySeeder())->run($user->id);
-        (new MerchantRuleSeeder())->run($user->id);
-        (new InstitutionSeeder())->run($user->id);
+        (new CategorySeeder)->run($user->id);
+        (new MerchantRuleSeeder)->run($user->id);
+        (new InstitutionSeeder)->run($user->id);
     }
 }

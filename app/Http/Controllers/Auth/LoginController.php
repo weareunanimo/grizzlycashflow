@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use DateTimeImmutable;
 use Grizzly\Domain\Identity\LoginLockoutPolicy;
 use Illuminate\Http\RedirectResponse;
@@ -20,9 +21,7 @@ use Illuminate\View\View;
  */
 final class LoginController extends Controller
 {
-    public function __construct(private readonly LoginLockoutPolicy $lockoutPolicy)
-    {
-    }
+    public function __construct(private readonly LoginLockoutPolicy $lockoutPolicy) {}
 
     public function show(): View|RedirectResponse
     {
@@ -46,7 +45,7 @@ final class LoginController extends Controller
         if ($blockedUntil = $this->blockedUntil($credentials['email'], $now)) {
             return back()
                 ->withInput(['email' => $credentials['email']])
-                ->withErrors(['email' => 'Muitas tentativas. Tente novamente às ' . $blockedUntil->format('H:i:s') . '.']);
+                ->withErrors(['email' => 'Muitas tentativas. Tente novamente às '.$blockedUntil->format('H:i:s').'.']);
         }
 
         $ok = Auth::attempt($credentials, remember: false);
@@ -58,7 +57,7 @@ final class LoginController extends Controller
             'created_at' => $now,
         ]);
 
-        if (!$ok) {
+        if (! $ok) {
             return back()
                 ->withInput(['email' => $credentials['email']])
                 ->withErrors(['email' => 'Credenciais inválidas.']);
@@ -66,7 +65,7 @@ final class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $user->forceFill(['last_login_at' => $now])->save();
 

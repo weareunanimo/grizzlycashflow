@@ -31,14 +31,30 @@ final class ReviewController extends Controller
         $userId = Auth::id();
         $type = in_array($request->query('type'), ['bank', 'card'], true) ? $request->query('type') : 'all';
 
+        $accounts = DB::table('accounts')
+            ->where('user_id', $userId)
+            ->where('type', '!=', 'credit_card')
+            ->whereNull('archived_at')
+            ->orderBy('id')
+            ->get(['id', 'name']);
+
+        $cards = DB::table('credit_cards')
+            ->join('accounts', 'accounts.id', '=', 'credit_cards.account_id')
+            ->where('credit_cards.user_id', $userId)
+            ->orderBy('credit_cards.id')
+            ->get(['credit_cards.id', 'accounts.name as account_name']);
+
+        $selectedAccountIds = array_map('intval', (array) $request->query('accounts', []));
+        $selectedCardIds = array_map('intval', (array) $request->query('cards', []));
+
         $rows = collect();
 
         if ($type !== 'card') {
-            $rows = $rows->concat($this->pendingTransactions($userId));
+            $rows = $rows->concat($this->pendingTransactions($userId, $selectedAccountIds));
         }
 
         if ($type !== 'bank') {
-            $rows = $rows->concat($this->pendingPurchases($userId));
+            $rows = $rows->concat($this->pendingPurchases($userId, $selectedCardIds));
         }
 
         $rows = $rows->sortByDesc('sort_key')->values();
@@ -56,7 +72,7 @@ final class ReviewController extends Controller
 
         $suggestions = [];
         foreach ($pending as $row) {
-            $suggestions[$row->kind . '-' . $row->id] = $this->suggestCategory($userId, $row->kind, $row->description, $row->id);
+            $suggestions[$row->kind.'-'.$row->id] = $this->suggestCategory($userId, $row->kind, $row->description, $row->id);
         }
 
         return view('review.index', [
@@ -64,12 +80,16 @@ final class ReviewController extends Controller
             'categories' => $this->categoryOptions($userId),
             'suggestions' => $suggestions,
             'type' => $type,
+            'accounts' => $accounts,
+            'cards' => $cards,
+            'selectedAccountIds' => $selectedAccountIds,
+            'selectedCardIds' => $selectedCardIds,
         ]);
     }
 
     public function store(Request $request, string $kind, int $id): RedirectResponse
     {
-        if (!in_array($kind, ['bank', 'card'], true)) {
+        if (! in_array($kind, ['bank', 'card'], true)) {
             abort(404);
         }
 
@@ -80,7 +100,7 @@ final class ReviewController extends Controller
         $table = $kind === 'bank' ? 'transactions' : 'card_purchases';
         $row = DB::table($table)->where('id', $id)->where('user_id', $userId)->first();
 
-        if (!$row) {
+        if (! $row) {
             abort(404);
         }
 
@@ -110,12 +130,14 @@ final class ReviewController extends Controller
         return redirect()->route('review.index', $request->query())->with('status', $status);
     }
 
-    private function pendingTransactions(int $userId): Collection
+    /** @param list<int> $accountIds */
+    private function pendingTransactions(int $userId, array $accountIds): Collection
     {
         return DB::table('transactions')
             ->where('user_id', $userId)
             ->where('needs_review', true)
             ->whereNull('deleted_at')
+            ->when($accountIds !== [], fn ($q) => $q->whereIn('account_id', $accountIds))
             ->orderByDesc('occurred_on')
             ->get()
             ->map(fn ($tx) => (object) [
@@ -124,16 +146,18 @@ final class ReviewController extends Controller
                 'date' => $tx->occurred_on,
                 'description' => $tx->description,
                 'amount_cents' => $tx->direction === 'out' ? -$tx->amount_cents : $tx->amount_cents,
-                'sort_key' => $tx->occurred_on . '-' . str_pad((string) $tx->id, 12, '0', STR_PAD_LEFT),
+                'sort_key' => $tx->occurred_on.'-'.str_pad((string) $tx->id, 12, '0', STR_PAD_LEFT),
             ]);
     }
 
-    private function pendingPurchases(int $userId): Collection
+    /** @param list<int> $cardIds */
+    private function pendingPurchases(int $userId, array $cardIds): Collection
     {
         return DB::table('card_purchases')
             ->where('user_id', $userId)
             ->where('needs_review', true)
             ->whereNull('deleted_at')
+            ->when($cardIds !== [], fn ($q) => $q->whereIn('credit_card_id', $cardIds))
             ->orderByDesc('purchase_date')
             ->get()
             ->map(fn ($p) => (object) [
@@ -142,7 +166,7 @@ final class ReviewController extends Controller
                 'date' => $p->purchase_date,
                 'description' => $p->description,
                 'amount_cents' => $p->installment_amount_cents,
-                'sort_key' => $p->purchase_date . '-' . str_pad((string) $p->id, 12, '0', STR_PAD_LEFT),
+                'sort_key' => $p->purchase_date.'-'.str_pad((string) $p->id, 12, '0', STR_PAD_LEFT),
             ]);
     }
 
@@ -198,7 +222,7 @@ final class ReviewController extends Controller
 
         DB::table('rules')->insert([
             'user_id' => $userId,
-            'name' => mb_substr('Aprendido: ' . $keyword, 0, self::RULE_NAME_MAX),
+            'name' => mb_substr('Aprendido: '.$keyword, 0, self::RULE_NAME_MAX),
             'priority' => 1,
             'is_active' => true,
             'stop_on_match' => true,
@@ -226,7 +250,7 @@ final class ReviewController extends Controller
 
         $build = function ($parentId, int $depth) use (&$build, $byParent, &$options): void {
             foreach ($byParent->get($parentId, collect()) as $category) {
-                $options[] = ['id' => $category->id, 'label' => str_repeat('— ', $depth) . $category->name];
+                $options[] = ['id' => $category->id, 'label' => str_repeat('— ', $depth).$category->name];
                 $build($category->id, $depth + 1);
             }
         };

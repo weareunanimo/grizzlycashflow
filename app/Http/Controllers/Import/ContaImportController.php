@@ -25,7 +25,6 @@ use Illuminate\View\View;
  */
 final class ContaImportController extends Controller
 {
-
     public function preview(Request $request): View|RedirectResponse
     {
         $validated = $request->validate([
@@ -36,12 +35,12 @@ final class ContaImportController extends Controller
         $userId = Auth::id();
         $account = DB::table('accounts')->where('id', $validated['account_id'])->where('user_id', $userId)->first();
 
-        if (!$account) {
+        if (! $account) {
             abort(404);
         }
 
         $contents = file_get_contents($request->file('file')->getRealPath());
-        $tmpPath = 'tmp/' . Str::uuid() . '.csv';
+        $tmpPath = 'tmp/'.Str::uuid().'.csv';
         Storage::put($tmpPath, $contents);
 
         $request->session()->put('import.conta', [
@@ -66,14 +65,14 @@ final class ContaImportController extends Controller
         $userId = Auth::id();
         $pending = $request->session()->get('import.conta');
 
-        if (!$pending) {
+        if (! $pending) {
             return redirect()->route('import.index')->withErrors(['file' => 'Sessão de importação expirou, envie o arquivo de novo.']);
         }
 
         $contents = Storage::get($pending['path']);
         $account = DB::table('accounts')->where('id', $pending['account_id'])->where('user_id', $userId)->first();
 
-        if (!$account || $contents === null) {
+        if (! $account || $contents === null) {
             return redirect()->route('import.index')->withErrors(['file' => 'Não achei mais o arquivo enviado, envie de novo.']);
         }
 
@@ -84,7 +83,7 @@ final class ContaImportController extends Controller
 
         $documentId = $existingDoc->id ?? null;
         if ($documentId === null) {
-            $storagePath = 'uploads/' . $sha256 . '.csv';
+            $storagePath = 'uploads/'.$sha256.'.csv';
             Storage::put($storagePath, $contents);
 
             $documentId = DB::table('documents')->insertGetId([
@@ -140,6 +139,7 @@ final class ContaImportController extends Controller
                     'updated_at' => now(),
                 ]);
                 $skipped++;
+
                 continue;
             }
 
@@ -157,7 +157,7 @@ final class ContaImportController extends Controller
                 $categorySource = 'seed';
             }
 
-            $needsReview = $categoryId === null && !$classification['is_transfer'];
+            $needsReview = $categoryId === null && ! $classification['is_transfer'];
 
             $importRowId = DB::table('import_rows')->insertGetId([
                 'user_id' => $userId,
@@ -180,7 +180,7 @@ final class ContaImportController extends Controller
                 'amount_cents' => abs($row['amount_cents']),
                 'currency' => 'BRL',
                 'occurred_on' => $row['date'],
-                'occurred_at' => $row['date'] . ' ' . $row['time'],
+                'occurred_at' => $row['date'].' '.$row['time'],
                 'cash_effect_on' => $row['date'],
                 'description' => $row['description'],
                 'raw_description' => $row['description'],
@@ -214,7 +214,7 @@ final class ContaImportController extends Controller
         Storage::delete($pending['path']);
         $request->session()->forget('import.conta');
 
-        return redirect()->route('accounts.show', $account->id)
+        return redirect()->route('banks.index', ['account' => $account->id])
             ->with('status', "{$created} lançamentos importados, {$skipped} já existiam e foram ignorados.");
     }
 

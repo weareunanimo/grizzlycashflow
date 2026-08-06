@@ -95,7 +95,13 @@
                                                 @include('partials.review-dot')
                                             @endif
                                         </td>
-                                        <td class="text-[var(--text-dim)]">{{ $tx->category_name ?? '—' }}</td>
+                                        <td class="text-[var(--text-dim)]">
+                                            @include('partials.category-picker', [
+                                                'action' => route('transactions.category', $tx->id),
+                                                'current' => $tx->category_id === null ? null : (int) $tx->category_id,
+                                                'currentName' => $tx->category_name,
+                                            ])
+                                        </td>
                                         <td class="font-mono {{ $tx->direction === 'out' ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
                                             {{ $tx->direction === 'out' ? '-' : '' }}R$ {{ number_format($tx->amount_cents / 100, 2, ',', '.') }}
                                         </td>

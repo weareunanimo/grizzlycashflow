@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Support\CategoryAssignment;
 use App\Support\CategoryTree;
 use App\Support\RendimentoCategorizer;
 use App\Support\ReviewQueue;
@@ -189,7 +190,7 @@ final class ReviewController extends Controller
 
         $categoryId = (int) $validated['category_id'];
 
-        if (! $this->categoryBelongsToUser($userId, $categoryId)) {
+        if (! CategoryAssignment::belongsToUser($userId, $categoryId)) {
             abort(404);
         }
 
@@ -200,27 +201,8 @@ final class ReviewController extends Controller
 
         $equivalent[$kind === 'bank' ? 'bank' : 'card'][] = $id;
 
-        $applied = 0;
-
-        foreach (['bank' => 'transactions', 'card' => 'card_purchases'] as $target => $targetTable) {
-            $ids = array_values(array_unique($equivalent[$target]));
-
-            if ($ids === []) {
-                continue;
-            }
-
-            // card_purchases não tem category_source/category_confidence (só transactions tem).
-            $fields = ['category_id' => $categoryId, 'needs_review' => false, 'updated_at' => now()];
-            if ($target === 'bank') {
-                $fields['category_source'] = 'user';
-                $fields['category_confidence'] = 1.000;
-            }
-
-            $applied += DB::table($targetTable)
-                ->where('user_id', $userId)
-                ->whereIn('id', $ids)
-                ->update($fields);
-        }
+        $applied = CategoryAssignment::apply('bank', $userId, $equivalent['bank'], $categoryId)
+            + CategoryAssignment::apply('card', $userId, $equivalent['card'], $categoryId);
 
         $this->learnRule($userId, $row->description, $categoryId);
 
@@ -240,14 +222,6 @@ final class ReviewController extends Controller
             ->where('needs_review', true)
             ->whereNull('deleted_at')
             ->where('description', 'like', RendimentoCategorizer::DESCRIPTION_PREFIX.'%')
-            ->exists();
-    }
-
-    private function categoryBelongsToUser(int $userId, int $categoryId): bool
-    {
-        return DB::table('categories')
-            ->where('id', $categoryId)
-            ->where('user_id', $userId)
             ->exists();
     }
 

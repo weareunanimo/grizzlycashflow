@@ -25,9 +25,11 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/bancos', [BankController::class, 'index'])->name('banks.index');
     Route::patch('/bancos/{id}', [BankController::class, 'update'])->name('banks.update');
     Route::delete('/bancos/{id}', [BankController::class, 'destroy'])->name('banks.destroy');
+    Route::patch('/lancamentos/{id}/categoria', [BankController::class, 'updateTransactionCategory'])->name('transactions.category');
     Route::get('/cartoes', [CreditCardController::class, 'index'])->name('cards.index');
     Route::patch('/cartoes/{key}', [CreditCardController::class, 'update'])->name('cards.update');
     Route::delete('/cartoes/{key}', [CreditCardController::class, 'destroy'])->name('cards.destroy');
+    Route::patch('/compras/{id}/categoria', [CreditCardController::class, 'updatePurchaseCategory'])->name('purchases.category');
 
     Route::get('/accounts/new', [NewAccountController::class, 'create'])->name('accounts.create');
     Route::post('/accounts', [NewAccountController::class, 'store'])->name('accounts.store');

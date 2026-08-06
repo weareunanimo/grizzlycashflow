@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Support\CategoryAssignment;
+use App\Support\CategoryTree;
 use Grizzly\Domain\Classification\MerchantDisplayName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -121,6 +123,7 @@ final class CreditCardController extends Controller
             'projection' => $projection,
             'installmentPlans' => $installmentPlans,
             'rows' => $rows,
+            'categories' => CategoryTree::options($userId),
         ]);
     }
 
@@ -222,6 +225,34 @@ final class CreditCardController extends Controller
         }
 
         return (int) $accountId;
+    }
+
+    /** Troca a categoria de uma compra da fatura, direto na lista. */
+    public function updatePurchaseCategory(Request $request, int $id): RedirectResponse
+    {
+        $userId = (int) Auth::id();
+        $validated = $request->validate(['category_id' => ['required', 'integer']]);
+        $categoryId = (int) $validated['category_id'];
+
+        if (! CategoryAssignment::belongsToUser($userId, $categoryId)) {
+            abort(404);
+        }
+
+        $exists = DB::table('card_purchases')
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if (! $exists) {
+            abort(404);
+        }
+
+        CategoryAssignment::apply('card', $userId, [$id], $categoryId);
+
+        $name = DB::table('categories')->where('id', $categoryId)->value('name');
+
+        return back()->with('status', "Categoria alterada para \"{$name}\".");
     }
 
     public function destroy(string $key): RedirectResponse

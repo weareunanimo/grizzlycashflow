@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Support\CategoryAssignment;
+use App\Support\CategoryTree;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -67,6 +69,7 @@ final class BankController extends Controller
             'accounts' => $accounts,
             'selected' => $selected,
             'rows' => $rows,
+            'categories' => CategoryTree::options($userId),
         ]);
     }
 
@@ -88,6 +91,35 @@ final class BankController extends Controller
         return redirect()
             ->route('banks.index', ['account' => $id])
             ->with('status', "Conta renomeada para \"{$validated['name']}\".");
+    }
+
+    /** Troca a categoria de um lançamento sem passar pela fila de revisão. */
+    public function updateTransactionCategory(Request $request, int $id): RedirectResponse
+    {
+        $userId = (int) Auth::id();
+        $validated = $request->validate(['category_id' => ['required', 'integer']]);
+        $categoryId = (int) $validated['category_id'];
+
+        if (! CategoryAssignment::belongsToUser($userId, $categoryId)) {
+            abort(404);
+        }
+
+        $exists = DB::table('transactions')
+            ->where('id', $id)
+            ->where('user_id', $userId)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        if (! $exists) {
+            abort(404);
+        }
+
+        CategoryAssignment::apply('bank', $userId, [$id], $categoryId);
+
+        $name = DB::table('categories')->where('id', $categoryId)->value('name');
+
+        // back() devolve à mesma aba, filtro e página em que o usuário estava.
+        return back()->with('status', "Categoria alterada para \"{$name}\".");
     }
 
     public function destroy(int $id): RedirectResponse

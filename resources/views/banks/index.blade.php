@@ -3,63 +3,69 @@
 @section('title', 'Bancos — ' . config('app.name'))
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-semibold">Bancos</h1>
-        <a href="{{ route('accounts.create') }}" class="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity">+ Adicionar</a>
-    </div>
+    <h1 class="text-2xl font-semibold mb-6">Bancos</h1>
 
     @if ($accounts->isEmpty())
         <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl px-5 py-8 text-center text-sm text-[var(--text-dim)]">
             Nenhuma conta cadastrada. <a href="{{ route('accounts.create') }}" class="text-[var(--accent)] underline">Adicionar</a>
         </div>
     @else
-        <div class="flex flex-wrap gap-[1px] mb-6 text-sm bg-[var(--surface-1)] border border-[var(--border)] rounded-lg p-1 w-fit max-w-full">
+        {{-- As ações vivem dentro da aba ativa: editar e excluir sempre se referem
+             à conta aberta, então ficam ao lado do nome dela. --}}
+        <div class="flex flex-wrap items-center gap-[1px] mb-6 text-sm bg-[var(--surface-1)] border border-[var(--border)] rounded-lg p-1 w-fit max-w-full">
             @foreach ($accounts as $account)
-                <a href="{{ route('banks.index', ['account' => $account->id]) }}"
-                    class="px-4 py-2 rounded-md transition-colors whitespace-nowrap {{ $selected && (int) $selected->id === (int) $account->id ? 'bg-[var(--surface-2)] text-[var(--text)] font-medium' : 'text-[var(--text-dim)]' }}">
-                    {{ $account->name }}
-                </a>
+                @if ($selected && (int) $selected->id === (int) $account->id)
+                    <span class="flex items-center gap-2 pl-4 pr-3 py-2 rounded-md bg-[var(--surface-2)] text-[var(--text)] font-medium whitespace-nowrap">
+                        {{ $account->name }}
+                        <details class="relative">
+                            <summary class="list-none cursor-pointer flex text-[var(--text)] hover:opacity-70 transition-opacity"
+                                role="button" aria-label="Editar nome da conta" title="Editar nome">
+                                @include('partials.icon-edit')
+                            </summary>
+                            <form method="POST" action="{{ route('banks.update', $selected->id) }}"
+                                class="absolute left-0 z-10 mt-2 w-72 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2 font-normal">
+                                @csrf
+                                @method('PATCH')
+                                <label for="bank-name" class="text-xs text-[var(--text-dim)]">Nome da conta</label>
+                                <input type="text" id="bank-name" name="name" value="{{ $selected->name }}" required maxlength="120"
+                                    class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+                                <button type="submit"
+                                    class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold py-2 text-sm hover:opacity-90 transition-opacity">
+                                    Salvar
+                                </button>
+                            </form>
+                        </details>
+                        <form method="POST" action="{{ route('banks.destroy', $selected->id) }}"
+                            onsubmit="return confirm('Tem certeza que deseja excluir a conta \'{{ $selected->name }}\'? Todos os lançamentos relacionados a ela serão apagados permanentemente. Essa ação não pode ser desfeita.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="flex text-[var(--text)] hover:opacity-70 transition-opacity"
+                                aria-label="Excluir conta" title="Excluir conta">
+                                @include('partials.icon-trash')
+                            </button>
+                        </form>
+                    </span>
+                @else
+                    <a href="{{ route('banks.index', ['account' => $account->id]) }}"
+                        class="px-4 py-2 rounded-md transition-colors whitespace-nowrap text-[var(--text-dim)] hover:text-[var(--text)]">
+                        {{ $account->name }}
+                    </a>
+                @endif
             @endforeach
+
+            <a href="{{ route('accounts.create') }}"
+                class="px-4 py-2 rounded-md transition-colors whitespace-nowrap text-[var(--accent)] hover:opacity-80">
+                + Adicionar
+            </a>
         </div>
 
         @if ($selected)
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                <div>
-                    <p class="text-sm text-[var(--text-dim)]">{{ $selected->institution_name }} · {{ $selected->type }}</p>
-                    <p class="text-sm mt-1">
-                        <span class="font-mono text-[var(--in)]">+R$ {{ number_format($selected->total_in_cents / 100, 2, ',', '.') }}</span>
-                        <span class="font-mono text-[var(--out)] ml-3">-R$ {{ number_format($selected->total_out_cents / 100, 2, ',', '.') }}</span>
-                    </p>
-                </div>
-                <div class="flex items-center gap-4 shrink-0">
-                    <details class="relative">
-                        <summary class="list-none cursor-pointer text-[var(--text)] hover:opacity-70 transition-opacity"
-                            role="button" aria-label="Editar nome da conta" title="Editar nome">
-                            @include('partials.icon-edit')
-                        </summary>
-                        <form method="POST" action="{{ route('banks.update', $selected->id) }}"
-                            class="absolute right-0 z-10 mt-2 w-72 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2">
-                            @csrf
-                            @method('PATCH')
-                            <label for="bank-name" class="text-xs text-[var(--text-dim)]">Nome da conta</label>
-                            <input type="text" id="bank-name" name="name" value="{{ $selected->name }}" required maxlength="120"
-                                class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
-                            <button type="submit"
-                                class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold py-2 text-sm hover:opacity-90 transition-opacity">
-                                Salvar
-                            </button>
-                        </form>
-                    </details>
-                    <form method="POST" action="{{ route('banks.destroy', $selected->id) }}"
-                        onsubmit="return confirm('Tem certeza que deseja excluir a conta \'{{ $selected->name }}\'? Todos os lançamentos relacionados a ela serão apagados permanentemente. Essa ação não pode ser desfeita.');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="flex text-[var(--text)] hover:opacity-70 transition-opacity"
-                            aria-label="Excluir conta" title="Excluir conta">
-                            @include('partials.icon-trash')
-                        </button>
-                    </form>
-                </div>
+            <div class="mb-4">
+                <p class="text-sm text-[var(--text-dim)]">{{ $selected->institution_name }} · {{ $selected->type }}</p>
+                <p class="text-sm mt-1">
+                    <span class="font-mono text-[var(--in)]">+R$ {{ number_format($selected->total_in_cents / 100, 2, ',', '.') }}</span>
+                    <span class="font-mono text-[var(--out)] ml-3">-R$ {{ number_format($selected->total_out_cents / 100, 2, ',', '.') }}</span>
+                </p>
             </div>
 
             @error('name')

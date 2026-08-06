@@ -34,8 +34,10 @@
                             <p class="text-xs text-[var(--text-dim)] truncate">{{ $account->institution_name }} · {{ $account->type }}</p>
                         </div>
                         <div class="text-left sm:text-right shrink-0">
-                            <p class="font-mono text-sm text-[var(--in)]">+R$ {{ number_format($account->total_in_cents / 100, 2, ',', '.') }}</p>
-                            <p class="font-mono text-sm text-[var(--out)]">-R$ {{ number_format($account->total_out_cents / 100, 2, ',', '.') }}</p>
+                            <p class="text-xs text-[var(--text-mute)] uppercase tracking-wider">Saldo disponível</p>
+                            <p class="font-mono text-sm {{ $account->balance_cents < 0 ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">
+                                R$ {{ number_format($account->balance_cents / 100, 2, ',', '.') }}
+                            </p>
                         </div>
                     </a>
                     @if ($account->recent->isNotEmpty())
@@ -53,6 +55,18 @@
                             @endforeach
                         </div>
                     @endif
+
+                    {{-- Totais do histórico inteiro, abaixo dos últimos lançamentos --}}
+                    <div class="grid grid-cols-2 gap-[1px] bg-[var(--border)] border-t border-[var(--border)]">
+                        <div class="bg-[var(--surface-1)] px-4 sm:px-5 py-3">
+                            <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-0.5">Entradas</p>
+                            <p class="font-mono text-sm text-[var(--in)]">R$ {{ number_format($account->total_in_cents / 100, 2, ',', '.') }}</p>
+                        </div>
+                        <div class="bg-[var(--surface-1)] px-4 sm:px-5 py-3">
+                            <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-0.5">Saídas</p>
+                            <p class="font-mono text-sm text-[var(--out)]">R$ {{ number_format($account->total_out_cents / 100, 2, ',', '.') }}</p>
+                        </div>
+                    </div>
                 </div>
             @endforeach
         </div>
@@ -74,8 +88,13 @@
                             </p>
                         </div>
                         <div class="text-left sm:text-right shrink-0">
-                            <p class="text-xs text-[var(--text-mute)] uppercase tracking-wider">Total em aberto</p>
-                            <p class="font-mono text-sm text-[var(--out)]">R$ {{ number_format($card->open_total_cents / 100, 2, ',', '.') }}</p>
+                            <p class="text-xs text-[var(--text-mute)] uppercase tracking-wider">
+                                Fatura em aberto
+                                @if ($card->open_invoice_month)
+                                    · {{ \Illuminate\Support\Carbon::parse($card->open_invoice_month)->translatedFormat('M/Y') }}
+                                @endif
+                            </p>
+                            <p class="font-mono text-sm text-[var(--out)]">R$ {{ number_format($card->open_invoice_cents / 100, 2, ',', '.') }}</p>
                         </div>
                     </a>
                     @if ($card->recent->isNotEmpty())
@@ -95,6 +114,12 @@
                             @endforeach
                         </div>
                     @endif
+
+                    {{-- Total em aberto = fatura atual + todas as parcelas futuras --}}
+                    <div class="bg-[var(--surface-1)] border-t border-[var(--border)] px-4 sm:px-5 py-3">
+                        <p class="text-xs uppercase tracking-wider text-[var(--text-mute)] mb-0.5">Total em aberto</p>
+                        <p class="font-mono text-sm text-[var(--out)]">R$ {{ number_format($card->open_total_cents / 100, 2, ',', '.') }}</p>
+                    </div>
                 </div>
             @empty
             @endforelse

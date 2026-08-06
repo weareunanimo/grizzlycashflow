@@ -34,6 +34,12 @@ final class DashboardController extends Controller
                 $account->total_in_cents = (int) ($sums->total_in ?? 0);
                 $account->total_out_cents = (int) ($sums->total_out ?? 0);
 
+                // Saldo disponível hoje: o que a conta tinha quando entrou no
+                // sistema, mais tudo que entrou, menos tudo que saiu.
+                $account->balance_cents = (int) $account->opening_balance_cents
+                    + $account->total_in_cents
+                    - $account->total_out_cents;
+
                 $account->recent = DB::table('transactions')
                     ->leftJoin('categories', 'categories.id', '=', 'transactions.category_id')
                     ->where('transactions.account_id', $account->id)
@@ -58,6 +64,24 @@ final class DashboardController extends Controller
                     ->where('credit_card_id', $card->id)
                     ->where('user_id', $user->id)
                     ->whereIn('status', ['projected', 'billed'])
+                    ->sum('amount_cents');
+
+                // A fatura em aberto é a próxima a vencer: a primeira competência
+                // que ainda não passou. O resto do total em aberto são parcelas
+                // que só caem em faturas seguintes.
+                $openMonth = DB::table('card_installments')
+                    ->where('credit_card_id', $card->id)
+                    ->where('user_id', $user->id)
+                    ->whereIn('status', ['projected', 'billed'])
+                    ->where('reference_month', '>=', now()->format('Y-m-01'))
+                    ->min('reference_month');
+
+                $card->open_invoice_month = $openMonth;
+                $card->open_invoice_cents = $openMonth === null ? 0 : (int) DB::table('card_installments')
+                    ->where('credit_card_id', $card->id)
+                    ->where('user_id', $user->id)
+                    ->whereIn('status', ['projected', 'billed'])
+                    ->where('reference_month', $openMonth)
                     ->sum('amount_cents');
 
                 $card->recent = DB::table('card_purchases')

@@ -3,73 +3,79 @@
 @section('title', 'Cartões — ' . config('app.name'))
 
 @section('content')
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-semibold">Cartões</h1>
-        <a href="{{ route('accounts.create') }}" class="text-sm text-[var(--accent)] hover:opacity-80 transition-opacity">+ Adicionar</a>
-    </div>
+    <h1 class="text-2xl font-semibold mb-6">Cartões</h1>
 
     @if ($cards->isEmpty())
         <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl px-5 py-8 text-center text-sm text-[var(--text-dim)]">
             Nenhum cartão cadastrado. <a href="{{ route('accounts.create') }}" class="text-[var(--accent)] underline">Adicionar</a>
         </div>
     @else
-        <div class="flex flex-wrap gap-[1px] mb-6 text-sm bg-[var(--surface-1)] border border-[var(--border)] rounded-lg p-1 w-fit max-w-full">
+        {{-- As ações vivem dentro da aba ativa: editar e excluir sempre se referem
+             ao cartão aberto, então ficam ao lado do nome dele. --}}
+        <div class="flex flex-wrap items-center gap-[1px] mb-6 text-sm bg-[var(--surface-1)] border border-[var(--border)] rounded-lg p-1 w-fit max-w-full">
             @foreach ($cards as $card)
-                <a href="{{ route('cards.index', ['card' => $card->key]) }}"
-                    class="px-4 py-2 rounded-md transition-colors whitespace-nowrap {{ $selected && $selected->key === $card->key ? 'bg-[var(--surface-2)] text-[var(--text)] font-medium' : 'text-[var(--text-dim)]' }}">
-                    {{ $card->account_name }}
-                </a>
+                @if ($selected && $selected->key === $card->key)
+                    <span class="flex items-center gap-2 pl-4 pr-3 py-2 rounded-md bg-[var(--surface-2)] text-[var(--text)] font-medium whitespace-nowrap">
+                        {{ $card->account_name }}
+                        <details class="relative">
+                            <summary class="list-none cursor-pointer flex text-[var(--text)] hover:opacity-70 transition-opacity"
+                                role="button" aria-label="Editar nome do cartão" title="Editar nome">
+                                @include('partials.icon-edit')
+                            </summary>
+                            <form method="POST" action="{{ route('cards.update', $selected->key) }}"
+                                class="absolute left-0 z-10 mt-2 w-72 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2 font-normal">
+                                @csrf
+                                @method('PATCH')
+                                <label for="card-name" class="text-xs text-[var(--text-dim)]">Nome do cartão</label>
+                                <input type="text" id="card-name" name="name" value="{{ $selected->account_name }}" required maxlength="120"
+                                    class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+                                <button type="submit"
+                                    class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold py-2 text-sm hover:opacity-90 transition-opacity">
+                                    Salvar
+                                </button>
+                            </form>
+                        </details>
+                        <form method="POST" action="{{ route('cards.destroy', $selected->key) }}"
+                            onsubmit="return confirm('Tem certeza que deseja excluir o cartão \'{{ $selected->account_name }}\'? Todos os dados relacionados a ele serão apagados permanentemente. Essa ação não pode ser desfeita.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="flex text-[var(--text)] hover:opacity-70 transition-opacity"
+                                aria-label="Excluir cartão" title="Excluir cartão">
+                                @include('partials.icon-trash')
+                            </button>
+                        </form>
+                    </span>
+                @else
+                    <a href="{{ route('cards.index', ['card' => $card->key]) }}"
+                        class="px-4 py-2 rounded-md transition-colors whitespace-nowrap text-[var(--text-dim)] hover:text-[var(--text)]">
+                        {{ $card->account_name }}
+                    </a>
+                @endif
             @endforeach
+
+            <a href="{{ route('accounts.create') }}"
+                class="px-4 py-2 rounded-md transition-colors whitespace-nowrap text-[var(--accent)] hover:opacity-80">
+                + Adicionar
+            </a>
         </div>
 
         @if ($selected)
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                <div>
-                    @if ($selected->card_type === 'voucher')
-                        <p class="text-sm text-[var(--text-dim)]">Cartão de benefícios · funciona por saldo, sem fatura</p>
-                        <p class="text-sm mt-1">
-                            <span class="text-xs text-[var(--text-mute)] uppercase tracking-wider mr-1">Saldo</span>
-                            <span class="font-mono {{ $selected->balance_cents < 0 ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">R$ {{ number_format($selected->balance_cents / 100, 2, ',', '.') }}</span>
-                        </p>
-                    @else
-                        <p class="text-sm text-[var(--text-dim)]">
-                            {{ ucfirst((string) $selected->brand) }} · fecha dia {{ $selected->closing_day }}, vence dia {{ $selected->due_day }}
-                        </p>
-                        <p class="text-sm mt-1">
-                            <span class="text-xs text-[var(--text-mute)] uppercase tracking-wider mr-1">Total em aberto</span>
-                            <span class="font-mono text-[var(--out)]">R$ {{ number_format($selected->open_total_cents / 100, 2, ',', '.') }}</span>
-                        </p>
-                    @endif
-                </div>
-                <div class="flex items-center gap-4 shrink-0">
-                    <details class="relative">
-                        <summary class="list-none cursor-pointer text-[var(--text)] hover:opacity-70 transition-opacity"
-                            role="button" aria-label="Editar nome do cartão" title="Editar nome">
-                            @include('partials.icon-edit')
-                        </summary>
-                        <form method="POST" action="{{ route('cards.update', $selected->key) }}"
-                            class="absolute right-0 z-10 mt-2 w-72 bg-[var(--surface-1)] border border-[var(--border)] rounded-xl p-4 flex flex-col gap-2">
-                            @csrf
-                            @method('PATCH')
-                            <label for="card-name" class="text-xs text-[var(--text-dim)]">Nome do cartão</label>
-                            <input type="text" id="card-name" name="name" value="{{ $selected->account_name }}" required maxlength="120"
-                                class="w-full rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
-                            <button type="submit"
-                                class="rounded-md bg-[var(--accent)] text-[var(--bg)] font-semibold py-2 text-sm hover:opacity-90 transition-opacity">
-                                Salvar
-                            </button>
-                        </form>
-                    </details>
-                    <form method="POST" action="{{ route('cards.destroy', $selected->key) }}"
-                        onsubmit="return confirm('Tem certeza que deseja excluir o cartão \'{{ $selected->account_name }}\'? Todos os dados relacionados a ele serão apagados permanentemente. Essa ação não pode ser desfeita.');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="flex text-[var(--text)] hover:opacity-70 transition-opacity"
-                            aria-label="Excluir cartão" title="Excluir cartão">
-                            @include('partials.icon-trash')
-                        </button>
-                    </form>
-                </div>
+            <div class="mb-6">
+                @if ($selected->card_type === 'voucher')
+                    <p class="text-sm text-[var(--text-dim)]">Cartão de benefícios · funciona por saldo, sem fatura</p>
+                    <p class="text-sm mt-1">
+                        <span class="text-xs text-[var(--text-mute)] uppercase tracking-wider mr-1">Saldo</span>
+                        <span class="font-mono {{ $selected->balance_cents < 0 ? 'text-[var(--out)]' : 'text-[var(--in)]' }}">R$ {{ number_format($selected->balance_cents / 100, 2, ',', '.') }}</span>
+                    </p>
+                @else
+                    <p class="text-sm text-[var(--text-dim)]">
+                        {{ ucfirst((string) $selected->brand) }} · fecha dia {{ $selected->closing_day }}, vence dia {{ $selected->due_day }}
+                    </p>
+                    <p class="text-sm mt-1">
+                        <span class="text-xs text-[var(--text-mute)] uppercase tracking-wider mr-1">Total em aberto</span>
+                        <span class="font-mono text-[var(--out)]">R$ {{ number_format($selected->open_total_cents / 100, 2, ',', '.') }}</span>
+                    </p>
+                @endif
             </div>
 
             @error('name')

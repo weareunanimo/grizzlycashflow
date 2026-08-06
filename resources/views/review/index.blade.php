@@ -5,8 +5,9 @@
 @section('content')
     <h1 class="text-2xl font-semibold mb-1">Revisar categorias</h1>
     <p class="text-sm text-[var(--text-dim)] mb-6">
-        Nenhuma regra reconheceu esses lançamentos com confiança. Confirme a sugestão, escolha outra categoria
-        ou crie uma nova — a decisão vale para todo lançamento igual pendente e vira uma regra para as próximas importações.
+        Nenhuma regra reconheceu esses lançamentos com confiança. Confirme a sugestão ou escolha outra categoria —
+        a decisão vale para todo lançamento do mesmo estabelecimento e vira uma regra para as próximas importações.
+        Falta alguma categoria? <a href="{{ route('categories.index') }}" class="text-[var(--accent)] underline">Crie em Categorias</a>.
     </p>
 
     @if ($accounts->isNotEmpty() || $cards->isNotEmpty())
@@ -133,18 +134,6 @@
                     </div>
                 </div>
 
-                <details class="mt-3">
-                    <summary class="list-none cursor-pointer text-xs text-[var(--accent)] hover:opacity-80 transition-opacity w-fit">
-                        Nenhuma categoria serve? Criar uma nova
-                    </summary>
-                    <div class="mt-2 flex flex-col sm:flex-row sm:items-center gap-2">
-                        <input type="text" name="new_category" maxlength="80" placeholder="Ex.: Academia"
-                            class="w-full sm:w-64 rounded-md bg-[var(--surface-2)] border border-[var(--border)] px-3 py-2 text-sm text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
-                        <span class="text-xs text-[var(--text-mute)]">
-                            Preenchendo este campo, a categoria nova é criada e aplicada — o campo acima é ignorado.
-                        </span>
-                    </div>
-                </details>
             </form>
         @empty
             <div class="bg-[var(--surface-1)] border border-[var(--border)] rounded-xl px-5 py-8 text-center text-sm text-[var(--text-dim)]">

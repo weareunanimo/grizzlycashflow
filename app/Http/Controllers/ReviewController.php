@@ -15,7 +15,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -176,11 +175,10 @@ final class ReviewController extends Controller
 
         $userId = Auth::id();
 
-        // Ou escolhe uma categoria existente, ou cria uma nova ali mesmo.
+        // Criar categoria é assunto da tela Categorias, que trata hierarquia e ordem.
         $validated = $request->validate([
-            'category_id' => ['nullable', 'integer', 'required_without:new_category'],
-            'new_category' => ['nullable', 'string', 'max:80', 'required_without:category_id'],
-        ], [], ['new_category' => 'nova categoria']);
+            'category_id' => ['required', 'integer'],
+        ]);
 
         $table = $kind === 'bank' ? 'transactions' : 'card_purchases';
         $row = DB::table($table)->where('id', $id)->where('user_id', $userId)->first();
@@ -189,11 +187,7 @@ final class ReviewController extends Controller
             abort(404);
         }
 
-        $newCategory = trim((string) ($validated['new_category'] ?? ''));
-
-        $categoryId = $newCategory !== ''
-            ? $this->findOrCreateCategory($userId, $newCategory)
-            : (int) $validated['category_id'];
+        $categoryId = (int) $validated['category_id'];
 
         if (! $this->categoryBelongsToUser($userId, $categoryId)) {
             abort(404);
@@ -236,50 +230,7 @@ final class ReviewController extends Controller
             ? "\"{$name}\" aplicada em {$applied} lançamentos do mesmo estabelecimento."
             : "\"{$name}\" aplicada.";
 
-        if ($newCategory !== '') {
-            $status = "Categoria \"{$name}\" criada. ".$status;
-        }
-
         return redirect()->route('review.index', $request->query())->with('status', $status);
-    }
-
-    /**
-     * Cria a categoria só se ainda não existir com esse nome (comparação sem
-     * acento/caixa via slug) — evita duplicar "Farmácia"/"farmacia" na revisão.
-     */
-    private function findOrCreateCategory(int $userId, string $name): int
-    {
-        $slug = Str::slug($name);
-
-        if ($slug === '') {
-            $slug = 'categoria';
-        }
-
-        // Procura em qualquer nível: "Farmácia" existe como subcategoria de Saúde,
-        // e criar uma "farmacia" solta no topo só duplicaria o relatório.
-        $existing = DB::table('categories')
-            ->where('user_id', $userId)
-            ->where('slug', $slug)
-            ->whereNull('archived_at')
-            ->orderBy('id')
-            ->value('id');
-
-        if ($existing !== null) {
-            return (int) $existing;
-        }
-
-        return (int) DB::table('categories')->insertGetId([
-            'user_id' => $userId,
-            'parent_id' => null,
-            'name' => $name,
-            'slug' => $slug,
-            'kind' => 'expense',
-            'is_system' => false,
-            'is_essential' => false,
-            'sort_order' => 900, // criadas na revisão vão para o fim da lista
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
     }
 
     private function hasPendingRendimentos(int $userId): bool

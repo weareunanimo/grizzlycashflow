@@ -13,8 +13,8 @@ use Tests\TestCase;
 
 /**
  * Sugestão de categoria na revisão: descrição idêntica, mesmo estabelecimento
- * (ignorando prefixo de gateway), regra ativa — e a criação de categoria nova
- * durante a própria revisão.
+ * (ignorando prefixo de gateway) e regra ativa. Criar categoria é assunto da
+ * tela Categorias — aqui só se escolhe entre as que existem.
  */
 final class ReviewSuggestionTest extends TestCase
 {
@@ -114,42 +114,7 @@ final class ReviewSuggestionTest extends TestCase
             ->assertSee('Confirmar');
     }
 
-    public function test_it_creates_a_new_category_during_review(): void
-    {
-        $id = $this->makeTransaction('SMART FIT ACADEMIA');
-
-        $this->actingAs($this->user)
-            ->post('/review/bank/'.$id, ['new_category' => 'Academia'])
-            ->assertRedirect();
-
-        $categoryId = DB::table('categories')
-            ->where('user_id', $this->user->id)
-            ->where('name', 'Academia')
-            ->value('id');
-
-        $this->assertNotNull($categoryId, 'esperava a categoria nova criada');
-        $this->assertSame((int) $categoryId, (int) DB::table('transactions')->where('id', $id)->value('category_id'));
-        $this->assertFalse((bool) DB::table('transactions')->where('id', $id)->value('needs_review'));
-    }
-
-    public function test_creating_a_category_that_already_exists_reuses_it(): void
-    {
-        $before = DB::table('categories')->where('user_id', $this->user->id)->count();
-        $id = $this->makeTransaction('DROGARIA X');
-
-        // "farmacia" e "Farmácia" viram o mesmo slug.
-        $this->actingAs($this->user)
-            ->post('/review/bank/'.$id, ['new_category' => 'farmacia'])
-            ->assertRedirect();
-
-        $this->assertSame($before, DB::table('categories')->where('user_id', $this->user->id)->count());
-        $this->assertSame(
-            $this->categoryId('Farmácia'),
-            (int) DB::table('transactions')->where('id', $id)->value('category_id')
-        );
-    }
-
-    public function test_it_requires_a_category_or_a_new_one(): void
+    public function test_it_requires_a_category(): void
     {
         $id = $this->makeTransaction('QUALQUER COISA');
 

@@ -99,11 +99,13 @@ final class ImportCardDocumentTest extends TestCase
 
     /**
      * "Desconto Antecipação de Parcelas" (e qualquer outra linha administrativa com
-     * `Parcela` fora do padrão "N de M") não é uma compra parcelada de verdade — sem
-     * installment_number/total, o commit tentava gravar `installments_total = NULL`
-     * e o banco derrubava com 500. Confirmado com uma fatura real do usuário.
+     * `Parcela` fora do padrão "N de M") não é "Pagamento de fatura" nem uma compra
+     * parcelada, mas ainda é um ajuste que muda o valor final da fatura — precisa
+     * continuar contando no total, não sumir. Sem o tratamento como lançamento único
+     * (1 de 1), o commit tentava gravar `installments_total = NULL` e o banco
+     * derrubava com 500. Confirmado com uma fatura real do usuário.
      */
-    public function test_a_row_with_unrecognized_installment_format_does_not_500_on_commit(): void
+    public function test_a_row_with_unrecognized_installment_format_is_counted_instead_of_500ing(): void
     {
         $csv = "Data;Estabelecimento;Portador;Valor;Parcela\r\n"
             ."01/09/2026;MERCADOLIVRE*MERCADOLIVRE;FERNANDO DE PAULA;R$ 50,00;-\r\n"
@@ -122,7 +124,16 @@ final class ImportCardDocumentTest extends TestCase
 
         @unlink($tmp);
 
-        $this->assertSame(1, DB::table('card_purchases')->where('credit_card_id', $this->cardId)->count());
+        $this->assertSame(2, DB::table('card_purchases')->where('credit_card_id', $this->cardId)->count());
+
+        $discount = DB::table('card_purchases')
+            ->where('credit_card_id', $this->cardId)
+            ->where('description', 'Desconto Antecipacao de Parcelas')
+            ->first();
+
+        $this->assertNotNull($discount);
+        $this->assertSame(-41, $discount->installment_amount_cents);
+        $this->assertSame(1, $discount->installments_total);
     }
 
     /** Benefícios entra pelo mesmo formulário, mas roda o parser de extrato. */

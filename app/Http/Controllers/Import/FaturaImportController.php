@@ -199,15 +199,19 @@ final class FaturaImportController extends Controller
         $rows = [];
 
         foreach ($parsed as $row) {
-            // Parcela não reconhecida (ex.: "Desconto Antecipação de Parcelas", " de 1") não é uma
-            // compra parcelada de verdade — sem installment_number/total não dá pra montar o
-            // group_key nem gravar `card_purchases.installments_total` (NOT NULL). Ignora como
-            // linha de pagamento (docs/13 §2.3: "[null,null]" já significava isso).
-            if ($row['is_payment'] || $row['installment_number'] === null || $row['installment_total'] === null) {
+            if ($row['is_payment']) {
                 $rows[] = array_merge($row, ['decision' => 'ignorado', 'amount_cents' => $row['amount']->cents()]);
 
                 continue;
             }
+
+            // Parcela fora do padrão "N de M" (ex.: "Desconto Antecipação de Parcelas", com
+            // Parcela "de 1") não é "Pagamento de fatura" nem uma compra parcelada — é um ajuste
+            // avulso da própria fatura (desconto por antecipar parcelas, etc.). Ele muda o valor
+            // final da fatura, então precisa continuar contando no total: trata como lançamento
+            // único (1 de 1) em vez de descartar (docs/13 §2.3 só previa null pra linha de pagamento).
+            $installmentNumber = $row['installment_number'] ?? 1;
+            $installmentTotal = $row['installment_total'] ?? 1;
 
             $merchantKey = MerchantNormalizer::key($row['description']);
             $amountCents = $row['amount']->cents();
@@ -215,12 +219,12 @@ final class FaturaImportController extends Controller
                 $creditCardId,
                 $merchantKey,
                 abs($amountCents),
-                (int) $row['installment_total'],
+                $installmentTotal,
                 $row['purchase_date'],
             );
 
             $firstReferenceMonth = Carbon::parse($referenceMonth)
-                ->subMonthsNoOverflow($row['installment_number'] - 1)
+                ->subMonthsNoOverflow($installmentNumber - 1)
                 ->format('Y-m-01');
 
             $exists = DB::table('card_purchases')
@@ -230,6 +234,8 @@ final class FaturaImportController extends Controller
                 ->exists();
 
             $rows[] = array_merge($row, [
+                'installment_number' => $installmentNumber,
+                'installment_total' => $installmentTotal,
                 'amount_cents' => $amountCents,
                 'group_key' => $groupKey,
                 'first_reference_month' => $firstReferenceMonth,

@@ -199,7 +199,11 @@ final class FaturaImportController extends Controller
         $rows = [];
 
         foreach ($parsed as $row) {
-            if ($row['is_payment']) {
+            // Parcela não reconhecida (ex.: "Desconto Antecipação de Parcelas", " de 1") não é uma
+            // compra parcelada de verdade — sem installment_number/total não dá pra montar o
+            // group_key nem gravar `card_purchases.installments_total` (NOT NULL). Ignora como
+            // linha de pagamento (docs/13 §2.3: "[null,null]" já significava isso).
+            if ($row['is_payment'] || $row['installment_number'] === null || $row['installment_total'] === null) {
                 $rows[] = array_merge($row, ['decision' => 'ignorado', 'amount_cents' => $row['amount']->cents()]);
 
                 continue;

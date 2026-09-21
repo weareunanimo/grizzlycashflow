@@ -97,6 +97,34 @@ final class ImportCardDocumentTest extends TestCase
         $this->assertGreaterThan(0, DB::table('card_purchases')->where('credit_card_id', $this->cardId)->count());
     }
 
+    /**
+     * "Desconto Antecipação de Parcelas" (e qualquer outra linha administrativa com
+     * `Parcela` fora do padrão "N de M") não é uma compra parcelada de verdade — sem
+     * installment_number/total, o commit tentava gravar `installments_total = NULL`
+     * e o banco derrubava com 500. Confirmado com uma fatura real do usuário.
+     */
+    public function test_a_row_with_unrecognized_installment_format_does_not_500_on_commit(): void
+    {
+        $csv = "Data;Estabelecimento;Portador;Valor;Parcela\r\n"
+            ."01/09/2026;MERCADOLIVRE*MERCADOLIVRE;FERNANDO DE PAULA;R$ 50,00;-\r\n"
+            ."23/09/2026;Desconto Antecipacao de Parcelas;FERNANDO DE PAULA;R$ -0,41; de 1\r\n";
+
+        $tmp = tempnam(sys_get_temp_dir(), 'fatura').'.csv';
+        file_put_contents($tmp, $csv);
+
+        $this->actingAs($this->user)->post('/importar/cartao/preview', [
+            'card_key' => 'c'.$this->cardId,
+            'reference_month' => '2026-09',
+            'file' => new UploadedFile($tmp, 'Fatura.csv', 'text/csv', null, true),
+        ])->assertOk();
+
+        $this->actingAs($this->user)->post('/import/fatura/commit')->assertRedirect();
+
+        @unlink($tmp);
+
+        $this->assertSame(1, DB::table('card_purchases')->where('credit_card_id', $this->cardId)->count());
+    }
+
     /** Benefícios entra pelo mesmo formulário, mas roda o parser de extrato. */
     public function test_it_previews_a_benefit_card_statement(): void
     {

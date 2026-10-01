@@ -21,6 +21,7 @@
                 <a href="{{ route('import.index') }}" class="hover:text-[var(--text)] transition-colors">Importar</a>
                 <a href="{{ route('categories.index') }}" class="hover:text-[var(--text)] transition-colors">Categorias</a>
                 <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
+                <a href="{{ route('recurring.index') }}" class="hover:text-[var(--text)] transition-colors">Recorrentes</a>
                 <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
                     Revisar
                     @if (($pendingReviewCount ?? 0) > 0)
@@ -48,6 +49,7 @@
             <a href="{{ route('import.index') }}" class="hover:text-[var(--text)] transition-colors">Importar</a>
             <a href="{{ route('categories.index') }}" class="hover:text-[var(--text)] transition-colors">Categorias</a>
             <a href="{{ route('closing.index') }}" class="hover:text-[var(--text)] transition-colors">Fechamento</a>
+            <a href="{{ route('recurring.index') }}" class="hover:text-[var(--text)] transition-colors">Recorrentes</a>
             <a href="{{ route('review.index') }}" class="hover:text-[var(--text)] transition-colors">
                 Revisar
                 @if (($pendingReviewCount ?? 0) > 0)

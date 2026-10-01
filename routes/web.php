@@ -10,6 +10,7 @@ use App\Http\Controllers\Import\ContaImportController;
 use App\Http\Controllers\Import\FaturaImportController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\NewAccountController;
+use App\Http\Controllers\RecurringController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/review/{kind}/{id}', [ReviewController::class, 'store'])->name('review.store');
 
     Route::get('/fechamento', [ClosingController::class, 'index'])->name('closing.index');
+    Route::get('/recorrentes', [RecurringController::class, 'index'])->name('recurring.index');
 
     Route::get('/importar', [ImportController::class, 'index'])->name('import.index');
 
